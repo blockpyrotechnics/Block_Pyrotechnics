@@ -1,541 +1,437 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Silvester-Shop – Step 5 (Produkte & Export)</title>
-<style>
-:root{
-  --bg:#0a0f15;--panel:#0e1621;--card:#111a26;--bar:#0b131c;
-  --border:#1e2a38;--muted:#9db6ce;--text:#e6f2ff;--accent:#00d4ff;--good:#30d158;
-}
-*{box-sizing:border-box}
-html,body{height:100%}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
-header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0b121b,#0c1520);border-bottom:1px solid var(--border)}
-.head{max-width:1000px;margin:0 auto;padding:10px 12px;display:flex;gap:10px;align-items:center}
-h1{margin:0;font-size:16px;font-weight:800}
-.badge{font-size:12px;color:var(--muted);margin-left:6px}
-.sbar{max-width:1000px;margin:6px auto 0;padding:0 12px;position:relative}
-#q{width:100%;padding:11px 12px;border-radius:12px;border:1px solid #264159;background:#0c1520;color:#e6f2ff}
-#menu{position:absolute;left:12px;right:12px;top:44px;background:#0b131c;border:1px solid var(--border);border-radius:10px;display:none;overflow:hidden;z-index:100;pointer-events:none}
-#menu.open{display:block;pointer-events:auto}
-#menu button{width:100%;text-align:left;background:#0e1926;border:none;border-bottom:1px solid #132235;color:#d7e8ff;padding:10px}
-.chips{max-width:1000px;margin:10px auto 0;padding:0 12px;display:flex;gap:8px;overflow:auto}
-.chip{background:#101a28;border:1px solid #24374a;color:#cfe7ff;padding:8px 12px;border-radius:999px;white-space:nowrap;cursor:pointer;font-size:13px}
-.chip.active{background:#153451;border-color:#2b5676}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px;max-width:1000px;margin:0 auto 0}
-@media(min-width:980px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
-.thumb{position:relative;display:flex;align-items:center;justify-content:center;height:120px;background:linear-gradient(135deg,#0f1b2a,#143a64);text-decoration:none;color:#cfe7ff;overflow:hidden}
-.thumb.hasimg{background-size:cover;background-position:center}
-.thumb span.cta{position:absolute;inset:auto 0 0 0;display:block;padding:10px 0;text-align:center;background:linear-gradient(180deg,transparent,rgba(0,0,0,.35));font-weight:800}
-.name{font-weight:700;font-size:14px;padding:10px 12px 0}
-.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px 12px}
-.price{color:#00d4ff;font-weight:800}
-.ctls{display:flex;gap:8px;align-items:center}
-.qty{width:64px;padding:8px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff}
-.btn{background:#14283a;color:#e9f4ff;border:1px solid #24455c;border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}
-.btn:hover{filter:brightness(1.08)}
-.cartbar{position:fixed;left:0;right:0;bottom:0;background:#0b131c;border-top:1px solid var(--border);padding:10px 12px;display:flex;gap:10px;align-items:center;z-index:40}
-.cartbar .sum{flex:1;color:#9db6ce;font-size:13px}
-.cartbar .n{font-weight:800;color:#e6f2ff}
-.modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(4,10,18,.7);z-index:45}
-.sheet{width:min(900px,92vw);max-height:86vh;overflow:auto;background:#0e1621;border:1px solid #1e2a38;border-radius:12px;padding:16px}
-.title{font-weight:800;margin:0 0 10px;font-size:16px}
-.row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px dashed #1b2b3f}
-.row:last-child{border-bottom:none}
-.hint{color:#9db6ce;font-size:12px}
-#spacer{height:calc(220px + env(safe-area-inset-bottom,0px))}
-
-.admin-badge{margin-left:auto;background:#14354d;border:1px solid #2a5877;color:#cfe7ff;padding:6px 10px;border-radius:999px;font-size:12px;display:none}
-.fab{position:fixed;right:16px;bottom:86px;width:52px;height:52px;border-radius:999px;border:1px solid #2a5877;background:#14354d;color:#e6f2ff;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:50}
-@media(min-width:980px){.fab{bottom:26px;right:26px}}
-
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Block Pyrotechnics — Shop</title>
+  <meta name="color-scheme" content="dark">
+  <style>
+    :root{
+      --bg:#0e1116;
+      --bg2:#0c0f14;
+      --surface:#151a22;
+      --surface-2:#1a2030;
+      --text:#eaf0f6;
+      --muted:#9fb0c3;
+      --accent:#7df9ff; /* icy cyan */
+      --accent-2:#22e1ff;
+      --danger:#ff4d4d;
+      --ok:#7dffa2;
+      --ring: rgba(34, 225, 255, .35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 800px at 20% -10%, rgba(125,249,255,.06), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(34,225,255,.05), transparent 60%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      letter-spacing:.2px;
+    }
+    .container{max-width:1200px;margin:0 auto;padding:20px}
+    header.topbar{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: saturate(130%) blur(8px);
+      background: linear-gradient(180deg, rgba(21,26,34,.75), rgba(21,26,34,.45));
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .topbar .wrap{
+      display:grid; grid-template-columns: auto 1fr auto; gap:16px; align-items:center;
+      padding:12px 20px; max-width:1200px; margin:0 auto;
+    }
+    .brand{display:flex; align-items:center; gap:14px; min-width:0}
+    .brand img{width:42px;height:42px; border-radius:50%; display:block; filter: drop-shadow(0 0 12px rgba(125,249,255,.25));}
+    .brand h1{font-size:16px; font-weight:600; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:.92; letter-spacing:.4px}
+    .search{
+      display:flex; align-items:center; gap:10px; position:relative;
+    }
+    .search input{
+      width:100%; background:var(--surface); border:1px solid rgba(255,255,255,.08);
+      color:var(--text); padding:12px 14px 12px 42px; border-radius:14px;
+      outline:none; transition:border .2s, box-shadow .2s, background .2s;
+      caret-color: var(--accent);
+    }
+    .search svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:.65}
+    .search input:focus{
+      border-color: var(--accent);
+      box-shadow: 0 0 0 6px var(--ring);
+      background: #121722;
+    }
+    .btn{
+      position:relative; display:inline-flex; align-items:center; gap:10px;
+      background: linear-gradient(180deg, #1f2636, #121722);
+      border:1px solid rgba(255,255,255,.08); color:var(--text);
+      padding:12px 16px; border-radius:14px; cursor:pointer;
+      transition:transform .15s ease, box-shadow .2s ease, border .2s;
+      user-select:none; overflow:hidden;
+    }
+    .btn:hover{transform: translateY(-1px); box-shadow: 0 10px 24px rgba(34,225,255,.09), inset 0 1px 0 rgba(255,255,255,.06);}
+    .btn:active{transform: translateY(0)}
+    .btn.glossy::after{
+      content:""; position:absolute; inset:0; pointer-events:none;
+      background: linear-gradient(140deg, rgba(255,255,255,.09), rgba(255,255,255,0) 35%);
+      mix-blend-mode:screen; opacity:.85;
+    }
+    .btn.primary{
+      border-color: rgba(125,249,255,.35);
+      background: linear-gradient(180deg, #1f2a3a, #121722);
+      box-shadow: inset 0 0 0 1px rgba(125,249,255,.15), 0 8px 24px rgba(125,249,255,.08);
+    }
+    main{padding:26px 20px}
+    .grid{
+      display:grid; gap:18px;
+      grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+    }
+    .card{
+      background: linear-gradient(180deg, #121722, #0f141d);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px; overflow:hidden; position:relative;
+      transition: transform .15s ease, box-shadow .2s ease, border-color .25s;
+    }
+    .card::before{
+      content:""; position:absolute; inset:-1px; border-radius:16px;
+      background: radial-gradient(500px 300px at 50% -10%, rgba(125,249,255,.18), transparent 60%);
+      filter: blur(12px); opacity:0; transition:opacity .2s;
+    }
+    .card:hover{transform: translateY(-2px); box-shadow: 0 16px 40px rgba(0,0,0,.4), 0 0 0 1px rgba(125,249,255,.12) inset;}
+    .card:hover::before{opacity:1}
+    .media{
+      aspect-ratio: 4/3; background:#0d1118; display:flex; align-items:center; justify-content:center;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .media img{max-width:100%; max-height:100%; object-fit:cover; display:block}
+    .info{padding:14px}
+    .title{font-size:15px; font-weight:600; margin:0 0 8px 0; letter-spacing:.2px}
+    .price{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+    .price .final{font-weight:700}
+    .price .orig{opacity:.55; text-decoration: line-through}
+    .badge{
+      font-size:12px; padding:4px 8px; border-radius:999px;
+      background:linear-gradient(180deg, rgba(125,249,255,.18), rgba(125,249,255,.08));
+      border:1px solid rgba(125,249,255,.35);
+      color:var(--text)
+    }
+    .actions{display:flex; gap:10px; margin-top:12px}
+    .actions a, .actions button{
+      text-decoration:none; color:var(--text)
+    }
+    /* Admin panel */
+    .modal{position:fixed; inset:0; display:none; place-items:center; z-index:100; background: rgba(7,10,14,.55); backdrop-filter: blur(8px)}
+    .modal.open{display:grid}
+    .dialog{
+      width:min(680px, 92vw);
+      background: linear-gradient(180deg, #121722, #0f141d);
+      border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:18px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.5);
+    }
+    .dialog h2{margin:4px 0 14px 0; font-size:18px}
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap:12px}
+    .row + .row{margin-top:12px}
+    label{font-size:12px; opacity:.8; display:block; margin-bottom:6px}
+    input[type="text"], input[type="number"], input[type="url"]{
+      width:100%; background:var(--surface); border:1px solid rgba(255,255,255,.08);
+      color:var(--text); padding:10px 12px; border-radius:12px; outline:none;
+    }
+    input:focus{border-color:var(--accent); box-shadow:0 0 0 5px var(--ring)}
+    .dialog .actions{justify-content:flex-end}
+    .toolbar{display:flex; align-items:center; justify-content:space-between; margin: 0 0 16px}
+    .empty{
+      text-align:center; opacity:.7; padding:40px 0; border:1px dashed rgba(255,255,255,.1); border-radius:16px;
+    }
+    footer{opacity:.6; font-size:12px; padding:20px; text-align:center}
+    @media (max-width:760px){
+      .topbar .wrap{grid-template-columns: auto 1fr auto}
+      .brand h1{display:none}
+      .row{grid-template-columns: 1fr}
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <div class="head">
-      <h1>Silvester-Shop<span class="badge">Step 5 · Produkte & Export</span></h1><span id="adminBadge" class="admin-badge">Admin aktiv</span>
-      
+  <header class="topbar">
+    <div class="wrap">
+      <div class="brand">
+        <img src="assets/logo.png" alt="Block Pyrotechnics Logo" />
+        <h1>Block Pyrotechnics</h1>
+      </div>
+      <div class="search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 21l-4.2-4.2" stroke="white" opacity=".7" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="11" cy="11" r="6.5" stroke="white" opacity=".7" stroke-width="1.6"/>
+        </svg>
+        <input id="search" type="text" placeholder="Produkte suchen …">
+      </div>
+      <button id="adminBtn" class="btn glossy primary">Admin</button>
     </div>
-    <div class="sbar">
-      <input id="q" placeholder="Suchen…">
-      <div id="menu"></div>
-    </div>
-    <div class="chips"></div>
   </header>
 
-  <main class="grid"></main>
-  <div id="spacer"></div>
-
-  <button class="fab" id="btnIdeas" title="Idee melden">💡</button>
-  <div class="cartbar">
-    <div class="sum">Warenkorb: <span class="n" id="n">0</span> · Summe: <span class="n" id="s">0,00</span> €</div>
-    <button class="btn" id="openCart">Warenkorb öffnen</button>
-    <button class="btn" id="buy">Kaufen / Code erhalten</button>
-  </div>
-
-  <!-- Cart Modal -->
-  <div class="modal" id="cart">
-    <div class="sheet">
-      <h3 class="title">🛒 Dein Warenkorb</h3>
-      <div id="rows"></div>
-      <div class="row"><div><strong>Summe</strong></div><div id="sum">0,00 €</div></div>
-      <div style="display:flex;gap:8px">
-        <button class="btn" onclick="clearCart()">Leeren</button>
-        <button class="btn" onclick="document.getElementById('cart').style.display='none'">Schließen</button>
-      </div>
+  <main class="container">
+    <div class="toolbar">
+      <div style="opacity:.7">Ein Shop mit <strong>Neo‑Noir</strong>‑Design &amp; Glow‑Akzenten.</div>
+      <div id="adminState" class="badge" style="display:none">Admin aktiv</div>
     </div>
-  </div>
 
+    <section id="grid" class="grid"></section>
+    <div id="emptyState" class="empty" style="display:none">Noch keine Artikel. Öffne <strong>Admin</strong> &rarr; „Artikel hinzufügen“.</div>
+  </main>
 
-  <!-- Ideas Modal -->
-  <div class="modal" id="ideas">
-    <div class="sheet" id="isheet"></div>
-  </div>
+  <footer>© <span id="year"></span> Block Pyrotechnics — Prototype UI</footer>
 
   <!-- Admin Modal -->
-  <div class="modal" id="admin">
-    <div class="sheet" id="asheet"></div>
+  <div class="modal" id="adminModal" aria-hidden="true">
+    <div class="dialog" role="dialog" aria-modal="true">
+      <h2>Admin</h2>
+      <div id="adminLogin">
+        <label for="adminCode">Code eingeben</label>
+        <input type="text" id="adminCode" placeholder="Admin-Code">
+        <div class="actions" style="margin-top:12px">
+          <button class="btn glossy" id="cancelLogin">Abbrechen</button>
+          <button class="btn glossy primary" id="doLogin">Login</button>
+        </div>
+      </div>
+
+      <div id="adminPanel" style="display:none">
+        <div class="row">
+          <div>
+            <label>Artikelname</label>
+            <input type="text" id="pName" placeholder="z. B. Cake 'Skyfall'">
+          </div>
+          <div>
+            <label>Preis (EUR)</label>
+            <input type="number" id="pPrice" placeholder="z. B. 39.99" step="0.01" min="0">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Rabatt (%)</label>
+            <input type="number" id="pDiscount" placeholder="z. B. 15" step="1" min="0" max="95">
+          </div>
+          <div>
+            <label>Bild‑URL (PNG/JPG)</label>
+            <input type="url" id="pImage" placeholder="https://…/bild.jpg">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>YouTube‑URL (optional)</label>
+            <input type="url" id="pYouTube" placeholder="https://youtu.be/…">
+          </div>
+          <div>
+            <label>Interne Notiz (optional)</label>
+            <input type="text" id="pNote" placeholder="z. B. 25er Kiste">
+          </div>
+        </div>
+        <div class="actions" style="margin-top:14px">
+          <button class="btn glossy" id="exportBtn">Export JSON</button>
+          <button class="btn glossy" id="clearBtn" style="border-color:rgba(255,77,77,.35); color:#ffdede">Alles löschen</button>
+          <button class="btn glossy primary" id="addBtn">Artikel hinzufügen</button>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <script>
-(()=>{'use strict';
-const _mem={};
-const store={ get:(k)=>{try{return localStorage.getItem(k)}catch{return _mem[k]??null}},
-               set:(k,v)=>{try{localStorage.setItem(k,v)}catch{_mem[k]=v}},
-               del:(k)=>{try{localStorage.removeItem(k)}catch{delete _mem[k]}} };
-
-const ADMIN_CODE="140318";
-const PRODUCTS=[{"id": "skarb_%28funke%29", "name": "Skarb (Funke)", "price": 48.0, "cat": "batterien"}, {"id": "krawall_monster_4", "name": "Krawall Monster 4", "price": 12.0, "cat": "batterien"}, {"id": "krawall_monster_3", "name": "Krawall Monster 3", "price": 12.0, "cat": "batterien"}, {"id": "knisterfeuer_b", "name": "Knisterfeuer B", "price": 4.5, "cat": "klein"}, {"id": "vogelschreck_100_stk_%28funke%29", "name": "Vogelschreck 100 Stk (Funke)", "price": 58.0, "cat": "singles"}, {"id": "big_bang_kasjopeja_%28jorge_jw06%29", "name": "Big Bang Kasjopeja (Jorge JW06)", "price": 9.5, "cat": "batterien"}, {"id": "big_bang_wenus_%28jorge_jw08%29", "name": "Big Bang Wenus (Jorge JW08)", "price": 15.0, "cat": "batterien"}, {"id": "traca_10_meter", "name": "Traca 10 Meter", "price": 11.0, "cat": "knaller"}, {"id": "signalrakete_901_mit_stab", "name": "Signalrakete 901 mit Stab", "price": 9.0, "cat": "singles"}, {"id": "urania_%28argento_mini-serie%29", "name": "Urania (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "acryl_%28argento_mini-serie%29", "name": "Acryl (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "demonio_%28argento_mini-serie%29", "name": "Demonio (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "orchid_%28argento_mini-serie%29", "name": "Orchid (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "amandra_%28argento_mini-serie%29", "name": "Amandra (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "capri_%28argento_mini-serie%29", "name": "Capri (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "plasma_%28argento_mini-serie%29", "name": "Plasma (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "glitzergold_%28argento%29", "name": "Glitzergold (Argento)", "price": 15.0, "cat": "batterien"}, {"id": "pluc_%28iskra_line%29", "name": "Pluc (Iskra Line)", "price": 13.0, "cat": "batterien"}, {"id": "whistling_palms_%28funke%29", "name": "Whistling Palms (Funke)", "price": 80.0, "cat": "batterien"}, {"id": "screaming_chrysanthemum_%28funke%29", "name": "Screaming Chrysanthemum (Funke)", "price": 99.0, "cat": "batterien"}, {"id": "neon_kong_%28funke%29", "name": "Neon Kong (Funke)", "price": 155.0, "cat": "batterien"}, {"id": "fermata_100a_%28funke%29", "name": "Fermata 100A (Funke)", "price": 185.0, "cat": "batterien"}, {"id": "elegant_night_%28funke%29", "name": "Elegant Night (Funke)", "price": 210.0, "cat": "batterien"}, {"id": "corolla_blue_%28funke%29", "name": "Corolla Blue (Funke)", "price": 185.0, "cat": "batterien"}, {"id": "snowblind_%28funke%29", "name": "Snowblind (Funke)", "price": 185.0, "cat": "batterien"}, {"id": "kolos_50mm_%28iskra_line%29", "name": "Kolos 50mm (Iskra Line)", "price": 90.0, "cat": "mm50"}, {"id": "hydra_50mm_%28iskra_line%29", "name": "Hydra 50mm (Iskra Line)", "price": 70.0, "cat": "mm50"}, {"id": "pytw%C3%B3r_50mm_%28iskra_line%29", "name": "Pytwór 50mm (Iskra Line)", "price": 95.0, "cat": "mm50"}, {"id": "bloom_blossom_%28panda%29", "name": "Bloom Blossom (Panda)", "price": 22.0, "cat": "batterien"}, {"id": "fire_%28panda%29", "name": "Fire (Panda)", "price": 15.0, "cat": "batterien"}, {"id": "lone_wolf_%28panda%29", "name": "Lone Wolf (Panda)", "price": 29.0, "cat": "batterien"}, {"id": "leider_geil_%28hey%21%29", "name": "Leider Geil (Hey!)", "price": 66.0, "cat": "batterien"}, {"id": "petarda_set_blau", "name": "Petarda Set blau", "price": 11.0, "cat": "knaller"}, {"id": "dum_bum_5g", "name": "Dum Bum 5g", "price": 16.0, "cat": "knaller"}, {"id": "pyroshow_2000_prometelis", "name": "Pyroshow 2000 Prometelis", "price": 135.0, "cat": "verbuende"}, {"id": "pyroshow_2000_hermes", "name": "Pyroshow 2000 Hermes", "price": 130.0, "cat": "verbuende"}, {"id": "pyroshow_1000_palermo", "name": "Pyroshow 1000 Palermo", "price": 70.0, "cat": "batterien"}, {"id": "pyroshow_talos", "name": "Pyroshow Talos", "price": 60.0, "cat": "batterien"}, {"id": "pretty_in_pink", "name": "Pretty in Pink", "price": 35.0, "cat": "batterien"}, {"id": "cosmic_chicken", "name": "Cosmic Chicken", "price": 9.0, "cat": "batterien"}, {"id": "made_in_japan", "name": "Made in Japan", "price": 79.99, "cat": "batterien"}, {"id": "candy_mountain", "name": "Candy Mountain", "price": 99.0, "cat": "verbuende"}, {"id": "raptor_princess", "name": "Raptor Princess", "price": 85.0, "cat": "batterien"}, {"id": "heisenberg_%28volt%21%29", "name": "Heisenberg (VOLT!)", "price": 299.0, "cat": "verbuende"}, {"id": "brutal_buffalo", "name": "Brutal Buffalo", "price": 100.0, "cat": "verbuende"}, {"id": "cakebox_speedtrap_%28volt%21%29", "name": "Cakebox Speedtrap (VOLT!)", "price": 140.0, "cat": "verbuende"}, {"id": "cake_white_red_rebel_%28volt%21%29", "name": "Cake White Red Rebel (VOLT!)", "price": 29.0, "cat": "batterien"}, {"id": "big_balls", "name": "Big Balls", "price": 4.0, "cat": "klein"}, {"id": "megacatling", "name": "Megacatling", "price": 25.0, "cat": "singles"}, {"id": "sonora_%28el_gato%29", "name": "Sonora (El Gato)", "price": 48.0, "cat": "batterien"}, {"id": "napad_%28iskra_line%29", "name": "Napad (Iskra Line)", "price": 70.0, "cat": "batterien"}, {"id": "kameleon_%28iskra_line%29", "name": "Kameleon (Iskra Line)", "price": 40.0, "cat": "batterien"}, {"id": "berserk_%28iskra_line%29", "name": "Berserk (Iskra Line)", "price": 70.0, "cat": "batterien"}, {"id": "double_deck_red_%28xplode%29", "name": "Double Deck RED (Xplode)", "price": 35.0, "cat": "batterien"}, {"id": "double_deck_blue_%28xplode%29", "name": "Double Deck BLUE (Xplode)", "price": 35.0, "cat": "batterien"}, {"id": "double_deck_purple_%28xplode%29", "name": "Double Deck PURPLE (Xplode)", "price": 35.0, "cat": "batterien"}, {"id": "blitz_krums_16_shot_%28iskra%29", "name": "Blitz Krums 16 Shot (Iskra)", "price": 10.0, "cat": "batterien"}, {"id": "blitz_krums_25_shot_%28iskra%29", "name": "Blitz Krums 25 Shot (Iskra)", "price": 16.0, "cat": "batterien"}, {"id": "blitz_krums_50_shot_%28iskra%29", "name": "Blitz Krums 50 Shot (Iskra)", "price": 25.0, "cat": "batterien"}, {"id": "blitz_krums_100_shot_%28iskra%29", "name": "Blitz Krums 100 Shot (Iskra)", "price": 50.0, "cat": "batterien"}, {"id": "exodus_%28riakeo%29", "name": "Exodus (Riakeo)", "price": 179.99, "cat": "verbuende"}, {"id": "vengeance_%28riakeo%29", "name": "Vengeance (Riakeo)", "price": 179.99, "cat": "verbuende"}, {"id": "miami_%28riakeo%29", "name": "Miami (Riakeo)", "price": 179.99, "cat": "verbuende"}, {"id": "terremoto_1s_%28el_gato%29", "name": "Terremoto 1S (El Gato)", "price": 35.0, "cat": "batterien"}, {"id": "terremoto_especial_1s_%28el_gato%29", "name": "Terremoto Especial 1S (El Gato)", "price": 35.0, "cat": "batterien"}, {"id": "terremoto_10s_%28el_gato%29", "name": "Terremoto 10S (El Gato)", "price": 35.0, "cat": "batterien"}, {"id": "terremoto_36s_%28el_gato%29", "name": "Terremoto 36S (El Gato)", "price": 35.0, "cat": "batterien"}, {"id": "fiesta_de_colores_%28el_gato%29", "name": "Fiesta De Colores (El Gato)", "price": 160.0, "cat": "batterien"}, {"id": "fiesta_dorada_%28el_gato%29", "name": "Fiesta Dorada (El Gato)", "price": 180.0, "cat": "batterien"}, {"id": "viking_50_einzelpreis", "name": "Viking 50 Einzelpreis", "price": 9.5, "cat": "knaller"}, {"id": "viking_50_%E2%80%93_4er_pack", "name": "Viking 50 – 4er Pack", "price": 35.0, "cat": "knaller"}];
-const K={ cart:'ultra_cart_v1', links:'ultra_links_v1', custom:'ultra_custom_v1', orders:'ultra_orders_v1', admin:'ultra_admin_ok_v1' };
-
-const $=(q,r=document)=>r.querySelector(q); const $$=(q,r=document)=>Array.from(r.querySelectorAll(q));
-const fmt=(n)=>n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
-const getLinks=()=>{ try{return JSON.parse(store.get(K.links))||{}}catch{return {}} };
-const setLinks=(o)=>store.set(K.links, JSON.stringify(o));
-const getCustom=()=>{ try{return JSON.parse(store.get(K.custom))||[]}catch{return []} };
-const setCustom=(a)=>store.set(K.custom, JSON.stringify(a));
-const getOrders=()=>{ try{return JSON.parse(store.get(K.orders))||{}}catch{return {}} };
-const setOrders=(o)=>store.set(K.orders, JSON.stringify(o));
-const isAdmin=()=>store.get(K.admin)==='true';
-const setAdmin=(v)=>v?store.set(K.admin,'true'):store.del(K.admin);
-const all=()=>{
-  const baseSrc = (typeof window!=='undefined' && Array.isArray(window.FB_PRODUCTS) && window.FB_PRODUCTS.length)? window.FB_PRODUCTS : PRODUCTS;
-  const base = baseSrc.map(p=>({ ...p }));
-  const merged = base.map(p=>{ const o=FB_OVERRIDES[p.id]||{}; return { ...p, price:(typeof o.price==='number'?o.price:p.price), link:o.link||p.link, img:o.img||p.img, cat:o.cat||p.cat, name:o.name||p.name }; });
-  const customs = (FB_CUSTOM.length? FB_CUSTOM : getCustom());
-  return merged.concat(customs);
-};
-const byId=(id)=>all().find(p=>p.id===id);
-let FB_OVERRIDES={};
-let FB_CUSTOM=[];
-let FB_ORDERS={};
-
-// ---------- RENDER ----------
-function renderChips(){ const cats=[...new Set(all().map(p=>p.cat))].sort(); const wrap=$('.chips');
-  wrap.innerHTML=['<div class="chip active" data-cat="alle">Alle</div>'].concat(cats.map(c=>`<div class="chip" data-cat="${c}">${c[0].toUpperCase()+c.slice(1)}</div>`)).join('');
-  $$('.chip').forEach(ch=>ch.addEventListener('click',()=>{ $$('.chip').forEach(x=>x.classList.remove('active')); ch.classList.add('active'); currentCat=ch.dataset.cat; applyFilter(); }));
-}
-
-function card(p){
-  return `<article class="card" data-id="${p.id}" data-name="${p.name.toLowerCase()}" data-cat="${p.cat}">
-    <a class="thumb" href="#" data-act="open"><span class="cta">Click mich</span></a>
-    <div class="name">${p.name}</div>
-    <div class="meta">
-      <div class="price">${fmt(p.price)}</div>
-      <div class="ctls">
-        <input class="qty" type="number" value="1" min="1" data-qty="${p.id}">
-        <button class="btn" data-act="add" data-id="${p.id}">In den Korb</button>
-      </div>
-    </div>
-  </article>`;
-}
-
-function renderGrid(){ const grid=$('.grid'); grid.innerHTML = all().map(card).join(''); applyLinks(); }
-function applyLinks(){
-  const L=getLinks();
-  $$('.card').forEach(card=>{ const id=card.dataset.id; const a=card.querySelector('.thumb');
-    const p = byId(id) || {};
-    const url = (L[id] || p.link || '');
-    const img = p.img || '';
-    if(url){ a.href=url; a.target='_blank'; } else { a.href='#'; a.removeAttribute('target'); }
-    if(img){ a.classList.add('hasimg'); a.style.backgroundImage = `linear-gradient(135deg,rgba(0,0,0,.0),rgba(0,0,0,.15)),url(${img})`; } else { a.classList.remove('hasimg'); a.style.backgroundImage=''; }
-  });
-}
-
-// ---------- FILTER ----------
-let currentCat='alle';
-function applyFilter(){
-  const q=($('#q').value||'').trim().toLowerCase();
-  $$('.card').forEach(c=>{ const t=c.dataset.name.includes(q); const cat=c.dataset.cat; c.style.display=(t && (currentCat==='alle'||currentCat===cat))? '': 'none'; });
-}
-
-// ---------- SLASH MENU ----------
-function showMenu(filter){
-  const menu=$('#menu'); if(!menu) return;
-  // Gate: Only admins may ever see the slash menu
-  if(!isAdmin()){ menu.classList.remove('open'); menu.innerHTML=''; return; }
-  const BASE=[{cmd:'/admin', desc:'Admin öffnen'}];
-  const EXTRA=[
-    {cmd:'/codes',desc:'Gespeicherte Warenkorb-Codes'},
-    {cmd:'/reset',desc:'Alle Codes löschen'},
-    {cmd:'/export',desc:'Bestellungen als CSV exportieren'},{cmd:'/seed',desc:'Basis-Produkte nach Firestore schreiben'}
-  ];
-  const COMMANDS=BASE.concat(EXTRA);
-  const q=(filter||'').toLowerCase();
-  const list=COMMANDS.filter(c=>c.cmd.startsWith(q));
-  if(!list.length){ menu.classList.remove('open'); menu.innerHTML=''; return; }
-  menu.innerHTML=list.map(c=>`<button data-cmd="${c.cmd}"><strong>${c.cmd}</strong> <span>${c.desc}</span></button>`).join('');
-  menu.classList.add('open');
-  $$('button',menu).forEach(b=>b.onclick=()=>{ execCmd(b.dataset.cmd); menu.classList.remove('open'); menu.innerHTML=''; });
-}
-
-function execCmd(v){
-  v=(v||'').trim().toLowerCase();
-  if(v==='/admin') return openAdmin();
-  if(!isAdmin()) return toast('Bitte zuerst /admin und Admin-Code eingeben.');
-  if(v==='/codes') return renderAdmin('codes');
-  if(v==='/reset'){ if(confirm('Alle Codes löschen?')){ setOrders({}); toast('Gelöscht.'); } return; }
-  if(v==='/seed'){ if(window.FB && FB.seedProducts){ FB.seedProducts(PRODUCTS).then(()=>toast('Produkte synchronisiert')); } else toast('Firebase nicht initialisiert'); return; }
-  if(v==='/export'){ exportOrdersCSV(); return; }
-  toast('Unbekannter Befehl');
-}
-
-// ---------- CART ----------
-const getCart=()=>{ try{return JSON.parse(store.get(K.cart))||{}}catch{return {}} };
-const setCart=(o)=>store.set(K.cart, JSON.stringify(o));
-function refreshBar(){ const c=getCart(); let n=0,s=0; for(const [id,q] of Object.entries(c)){ const p=byId(id); if(!p) continue; n+=q; s+=p.price*q; } $('#n').textContent=n; $('#s').textContent=s.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function addToCart(id,qty=1){ const q=Math.max(1,parseInt(qty,10)||1); const c=getCart(); c[id]=(c[id]||0)+q; setCart(c); refreshBar(); toast('Hinzugefügt'); }
-function removeItem(id){ const c=getCart(); delete c[id]; setCart(c); openCart(); }
-function clearCart(){ setCart({}); openCart(); }
-function openCart(){ const rows=$('#rows'); rows.innerHTML=''; let sum=0;
-  const c=getCart();
-  for(const [id,q] of Object.entries(c)){ const p=byId(id); if(!p) continue; sum+=p.price*q;
-    const r=document.createElement('div'); r.className='row';
-    r.innerHTML = `<div><strong>${p.name}</strong><div class="hint">${fmt(p.price)} · Menge: ${q}</div></div><div>${fmt(p.price*q)} <button class="btn" data-act="rm" data-id="${id}">Entfernen</button></div>`;
-    rows.appendChild(r);
-  }
-  $('#sum').textContent=fmt(sum);
-  $('#cart').style.display='grid';
-}
-
-function genCode(){ const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<6;i++) s+=chars[Math.floor(Math.random()*chars.length)]; return s; }
-function buyNow(){
-  const c=getCart(); if(Object.keys(c).length===0) return toast('Warenkorb ist leer');
-  const code=genCode(); const items=Object.entries(c).map(([id,qty])=>({id,qty}));
-  const sheet=$('#asheet');
-  sheet.innerHTML = `
-    <h3 class="title">🧾 Bestellung prüfen</h3>
-    <div style="display:grid;gap:8px">
-      <label>Dein Name (Pflicht): <input id="custName" placeholder="Name eingeben" style="width:100%;padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff"></label>
-      <label>Code (automatisch): <input id="custCode" readonly value="${code}" style="width:100%;padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff"></label>
-    </div>
-    <div style="margin-top:10px;display:flex;gap:8px">
-      <button class="btn" id="ok">Bestätigen</button>
-      <button class="btn" id="cancel">Abbrechen</button>
-    </div>`;
-  $('#admin').style.display='grid';
-  $('#cancel').onclick=()=>$('#admin').style.display='none';
-  $('#ok').onclick=()=>{ const name=($('#custName').value||'').trim(); if(!name) return toast('Bitte Namen eingeben.');
-    const orders=getOrders(); orders[code]={ when:new Date().toISOString(), name, items }; setOrders(orders);
-    setCart({}); refreshBar();
-    sheet.innerHTML=`<h3 class="title">✅ Bestellung gespeichert</h3><div class="hint">Danke ${name}! Dein Code: ${code}.</div><div style="margin-top:10px"><button class="btn" id="done">Fertig</button></div>`;
-    $('#done').onclick=()=>$('#admin').style.display='none';
-  };
-}
-
-// ---------- EXPORT ----------
-function exportOrdersCSV(){
-  const orders=getOrders();
-  const rows=[['code','when','name','items_count','items_detail']];
-  for(const [code,o] of Object.entries(orders)){
-    const cnt=(o.items||[]).reduce((a,b)=>a+b.qty,0);
-    const detail=(o.items||[]).map(it=>`${it.id}x${it.qty}`).join('|');
-    rows.push([code,o.when||'',o.name||'',String(cnt),detail]);
-  }
-  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='orders_export.csv'; document.body.appendChild(a); a.click(); a.remove();
-  toast('Export erstellt');
-}
-
-// ---------- ADMIN ----------
-function openAdmin(){
-  const sheet=$('#asheet');
-  if(!isAdmin()){
-    sheet.innerHTML=`
-      <h3 class="title">🔐 Admin-Login</h3>
-      <div class="hint">Bitte Admin-E-Mail und Admin-Code eingeben.</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <select id="emailSel" style="flex:1;min-width:220px;padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff">
-          <option value="patrick@blockpyro.de" selected>patrick@blockpyro.de</option>
-          <option value="admin@block-pyrotechnics.firebaseapp.com">admin@block-pyrotechnics.firebaseapp.com</option>
-          <option value="__other__">Andere…</option>
-        </select>
-        <input id="email" placeholder="Admin-E-Mail (frei eingeben)" style="flex:1;min-width:220px;padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff;display:none">
-        <input id="code" placeholder="Admin-Code" style="flex:1;min-width:160px;padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff">
-        <button class="btn" id="go">Weiter</button>
-        <button class="btn" id="x">Abbrechen</button>
-      </div>`;
-    $('#admin').style.display='grid';
-    $('#x').onclick=()=>$('#admin').style.display='none';
-    $('#go').onclick=()=>{ if(($('#code').value||'').trim()===ADMIN_CODE){ setAdmin(true); document.getElementById('adminBadge').style.display='inline-flex'; renderAdmin('links'); } else toast('Falscher Code'); };
-    return;
-  }
-  renderAdmin('links');
-}
-
-function renderAdmin(tab){
-  const s=$('#asheet');
-  const tabs=(active)=>`
-    <div class="tabs">
-      <button class="btn" data-tab="links"${active==='links'?' style="outline:2px solid #2b5676"':''}>Links</button>
-      <button class="btn" data-tab="codes"${active==='codes'?' style="outline:2px solid #2b5676"':''}>Codes</button>
-      <button class="btn" data-tab="produkte"${active==='produkte'?' style="outline:2px solid #2b5676"':''}>Produkte</button>
-      <button class="btn" data-tab="ideen"${active==='ideen'?' style="outline:2px solid #2b5676"':''}>Ideen</button>
-      <button class="btn logout" id="lo" style="margin-left:auto">Logout</button>
-    </div>`;
-
-  if(tab==='links'){
-    const L=getLinks();
-    const rows=all().map(p=>`<div class="row"><div style="min-width:220px"><strong>${p.name}</strong><div class="hint">ID: ${p.id}</div></div><div style="flex:1"><input id="L-${p.id}" placeholder="https://youtube.com/..." value="${L[p.id]||''}" style="width:100%;padding:8px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff"></div></div>`).join('');
-    s.innerHTML=tabs('links')+`<h3 class="title">🔗 Admin – Links</h3><div>${rows}</div><div style="margin-top:10px;display:flex;gap:8px"><button class="btn" id="saveL">Speichern</button><button class="btn" id="closeA">Fertig</button></div>`;
-    $('#saveL').onclick=()=>{ const obj=getLinks(); all().forEach(p=>{ const el=$('#L-'+p.id); if(el) obj[p.id]=el.value.trim(); }); setLinks(obj); applyLinks(); toast('Links gespeichert'); };
-  }
-  else if(tab==='codes'){
-    const orders=getOrders(); const keys=Object.keys(orders).sort((a,b)=> (orders[b].when||'').localeCompare(orders[a].when||''));
-    const content = keys.length? keys.map(k=>{ const o=orders[k]; const cnt=(o.items||[]).reduce((a,b)=>a+b.qty,0); const when=new Date(o.when).toLocaleString('de-DE'); const name=o.name||'-'; return `<div class="row"><div><strong>Code ${k}</strong><div class="hint">${when} – ${cnt} Artikel – ${name}</div></div><div><button class="btn" data-act="delcode" data-code="${k}">Löschen</button></div></div>`; }).join('') : '<div class="hint">Noch keine Codes.</div>';
-    s.innerHTML=tabs('codes')+`<h3 class="title">🧾 Admin – Codes</h3>`+content+`<div style="margin-top:10px;display:flex;gap:8px"><button class="btn" id="export">Export CSV</button><button class="btn" id="closeA">Fertig</button></div>`;
-    $('#export').onclick=exportOrdersCSV;
-  }
-  else if(tab==='produkte'){
-    const cats=[...new Set(all().map(p=>p.cat))].sort();
-    const opts=cats.map(c=>`<option value="${c}">${c}</option>`).join('') + `<option value="__new__">➕ Neue Kategorie…</option>`;
-    const list=getCustom();
-    const rows=list.length? list.map(p=>`<div class="row"><div><strong>${p.name}</strong><div class="hint">${p.price.toFixed(2)} € – ${p.cat}</div></div><div><button class="btn" data-act="delcustom" data-id="${p.id}">Entfernen</button></div></div>`).join('') : '<div class="hint">Noch keine eigenen Produkte.</div>';
-    s.innerHTML=tabs('produkte')+`<h3 class="title">➕ Produkt hinzufügen</h3>
-      <div style="display:grid;gap:8px;grid-template-columns:1fr 1fr">
-        <input id="new_name" placeholder="Produktname">
-        <input id="new_price" placeholder="Preis z. B. 19.99">
-        <select id="new_cat">${opts}</select>
-        <input id="new_cat_new" placeholder="Neue Kategorie" style="display:none">
-        <input id="new_link" placeholder="YouTube-Link (optional)">
-        <input id="new_img" placeholder="Bild-Link (optional, z. B. GitHub Raw)">
-      </div>
-      <div style="margin-top:10px;display:flex;gap:8px"><button class="btn" id="addP">Hinzufügen</button><button class="btn" id="closeA">Fertig</button></div>
-      <h3 class="title" style="margin-top:14px">🧩 Eigene Produkte</h3>
-      <div id="plist">${rows}</div>`;
-
-    $('#new_cat').onchange=()=>{ const v=$('#new_cat').value; $('#new_cat_new').style.display = (v==='__new__') ? '' : 'none'; };
-
-    $('#addP').onclick=()=>{
-      const name=$('#new_name').value.trim();
-      const price=parseFloat(($('#new_price').value||'').replace(',','.'));
-      let cat=$('#new_cat').value;
-      const catNew=$('#new_cat_new').value.trim();
-      const link=$('#new_link').value.trim();
-      if(!name || !(price>=0)) return toast('Name/Preis fehlt.');
-      if(cat==='__new__'){ if(!catNew) return toast('Neue Kategorie eingeben.'); cat=catNew; }
-      let id=name.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');
-      const allIds=new Set(all().map(p=>p.id)); let base=id, i=1; while(allIds.has(id)) id=base+'_'+(++i);
-      const arr=getCustom(); arr.push({id,name,price,cat,link}); setCustom(arr);
-      renderGrid(); renderChips(); applyFilter(); applyLinks();
-      renderAdmin('produkte'); toast('Produkt hinzugefügt');
-    };
-  }
-
-  // Common bindings
-  
-  else if(tab==='ideen'){
-    const items = (window.FB_IDEAS||[]);
-    const rows = items.length ? items.map(d=>{
-      const when = d.when? new Date(d.when.seconds? d.when.seconds*1000 : d.when).toLocaleString('de-DE') : '';
-      const name = d.name || '-';
-      const text = (d.text||'').replace(/</g,'&lt;');
-      return `<div class="row">
-        <div><strong>${name}</strong><div class="hint">${when}</div><div>${text}</div></div>
-        <div><button class="btn" data-act="delidea" data-id="${d.id}">Löschen</button></div>
-      </div>`;
-    }).join('') : '<div class="hint">Noch keine Ideen.</div>';
-    s.innerHTML=tabs('ideen')+`<h3 class="title">💡 Ideen (live)</h3>`+rows+`<div style="margin-top:10px"><button class="btn" id="closeA">Fertig</button></div>`;
-  }
-
-  $$('.btn[data-tab]',s).forEach(b=>b.onclick=()=>renderAdmin(b.dataset.tab));
-  $('#lo').onclick=()=>{ setAdmin(false); document.getElementById('adminBadge').style.display='none'; toast('Abgemeldet'); $('#admin').style.display='none'; };
-  $('#closeA').onclick=()=>$('#admin').style.display='none';
-
-  s.addEventListener('click',(e)=>{ const b=e.target.closest('button'); if(!b) return;
-    if(b.dataset.act==='delcode'){ const code=b.dataset.code; const o=getOrders(); delete o[code]; setOrders(o); renderAdmin('codes'); }
-    if(b.dataset.act==='delcustom'){ const id=b.dataset.id; const list=getCustom().filter(x=>x.id!==id); setCustom(list); renderGrid(); renderAdmin('produkte'); applyFilter(); }
-  });
-}
-
-// ---------- TOAST ----------
-function toast(msg){ let t=$('#toast'); if(!t){ t=document.createElement('div'); t.id='toast'; t.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:80px;background:#0b1828;border:1px solid #214058;padding:10px 14px;border-radius:10px;z-index:99'; document.body.appendChild(t);}
-  t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',1200); }
-
-// ---------- BOOT ----------
-window.addEventListener('DOMContentLoaded',()=>{ try{ if(localStorage.getItem('ultra_admin_ok_v1')==='true'){ document.getElementById('adminBadge').style.display='inline-flex'; } }catch(e){}renderChips(); renderGrid(); refreshBar();
-  $('#q').addEventListener('input',()=>{ const v=$('#q').value.trim().toLowerCase(); if(isAdmin() && v.startsWith('/')){ showMenu(v); } else { $('#menu').classList.remove('open'); $('#menu').innerHTML=''; } applyFilter();});
-$('#q').addEventListener('keydown',(e)=>{ if(e.key==='Enter'){  const v=$('#q').value.trim().toLowerCase();  if(v.startsWith('/')){    if(!isAdmin() && v!=='/admin'){ toast('Bitte zuerst /admin und Admin-Code eingeben.'); return; }    execCmd(v); $('#menu').classList.remove('open'); $('#menu').innerHTML=''; $('#q').value=''; applyFilter();  } }});
-
-  $('#q').addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ const v=$('#q').value.trim().toLowerCase(); if(v.startsWith('/')){ execCmd(v); $('#menu').classList.remove('open'); $('#menu').innerHTML=''; $('#q').value=''; applyFilter(); } }});
-
-  document.addEventListener('click',(e)=>{ const b=e.target.closest('button');
-    if(b && b.dataset.act==='add'){ const card=e.target.closest('.card'); const qty=card?.querySelector('[data-qty]')?.value||1; addToCart(b.dataset.id, qty); return; }
-    if(b && b.dataset.act==='rm'){ removeItem(b.dataset.id); return; }
-  });
-
-  $('#openCart').onclick=openCart;
-  $('#buy').onclick=buyNow;
-  $$('.modal').forEach(m=>m.addEventListener('click',(e)=>{ if(e.target===m) m.style.display='none'; }));
-  // Ideas button
-  const openIdeas=()=>{
-    const s=$('#isheet');
-    s.innerHTML = `
-      <h3 class="title">💡 Idee / Wunsch / Empfehlung</h3>
-      <div style="display:grid;gap:8px">
-        <input id="ideaName" placeholder="Dein Name (optional)" style="padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff">
-        <textarea id="ideaText" placeholder="Schreibe deine Idee..." rows="5" maxlength="1000" style="padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff"></textarea>
-      </div>
-      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" id="ideaSend">Senden</button>
-        <button class="btn" id="ideaClose">Schließen</button>
-      </div>`;
-    $('#ideas').style.display='grid';
-    $('#ideaClose').onclick=()=>$('#ideas').style.display='none';
-    $('#ideaSend').onclick=async()=>{
-      const name=($('#ideaName').value||'').trim();
-      const text=($('#ideaText').value||'').trim();
-      if(!text) return toast('Bitte eine Idee eingeben.');
-      if(window.FB && FB.saveIdea){
-        const ok = await FB.saveIdea({name,text});
-        if(ok!==false){ toast('Danke! Idee gesendet.'); $('#ideas').style.display='none'; }
-        else { toast('Senden fehlgeschlagen.'); }
-      } else { toast('Firebase nicht initialisiert.'); }
-    };
-  };
-  $('#btnIdeas').onclick=openIdeas;
-
-});
-})();
-</script>
-
 <script>
-// --- Hard override: hide slash menu for non-admins ---
-(function(){
-  const $=(q,r=document)=>r.querySelector(q);
-  const isAdmin=()=>{ try{return localStorage.getItem('ultra_admin_ok_v1')==='true'}catch(e){return false} };
-  const killMenu=()=>{ const m=$('#menu'); if(m){ m.classList.remove('open'); m.innerHTML=''; } };
+(() => {
+  const € = sel => document.querySelector(sel);
+  const €€ = sel => Array.from(document.querySelectorAll(sel));
+  const fmtEUR = v => new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(v);
 
-  // Wrap showMenu
-  const prevShow=window.showMenu;
-  window.showMenu=function(filter){
-    if(!isAdmin()){ killMenu(); return; }
-    if(typeof prevShow==='function'){ prevShow(filter); }
+  const ADMIN_CODE = "BLOCK-ADMIN-22"; // <- nach Wunsch ändern
+  const LS_KEY = "bp_products_v1";
+
+  const state = {
+    admin:false,
+    products: []
   };
 
-  // Input guard (capture phase): if non-admin & startsWith('/'), never show menu
-  const q=$('#q');
-  if(q){
-    q.addEventListener('input', function(){
-      if(!isAdmin()){
-        const v=(q.value||'').trim().toLowerCase();
-        if(v.startsWith('/')) killMenu();
-      }
-    }, true);
+  function load(){
+    try{
+      state.products = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
+    }catch{ state.products = []; }
+  }
+  function save(){
+    localStorage.setItem(LS_KEY, JSON.stringify(state.products));
   }
 
-  // Exec guard: only /admin pre-login
-  const prevExec=window.execCmd;
-  window.execCmd=function(v){
-    v=(v||'').trim().toLowerCase();
-    if(!isAdmin() && v!=='/admin'){ alert('Bitte zuerst /admin und Admin-Code eingeben.'); killMenu(); return; }
-    if(typeof prevExec==='function') prevExec(v);
+  function priceWithDiscount(p){
+    const price = Number(p.price||0);
+    const d = Math.max(0, Math.min(95, Number(p.discount||0)));
+    const final = +(price * (100 - d) / 100).toFixed(2);
+    return {price, d, final};
+  }
+
+  function render(){
+    const grid = €("#grid");
+    grid.innerHTML = "";
+    const q = €("#search").value.trim().toLowerCase();
+    const list = state.products.filter(p => !q || (p.name||"").toLowerCase().includes(q));
+
+    if(list.length === 0){
+      €("#emptyState").style.display = "block";
+      return;
+    }
+    €("#emptyState").style.display = "none";
+
+    for(const p of list){
+      const {price, d, final} = priceWithDiscount(p);
+      const card = document.createElement("article");
+      card.className = "card";
+
+      const media = document.createElement("div");
+      media.className = "media";
+      const img = document.createElement("img");
+      img.alt = p.name || "Artikelbild";
+      img.loading = "lazy";
+      img.src = p.image || "";
+      media.appendChild(img);
+
+      const info = document.createElement("div");
+      info.className = "info";
+      const h3 = document.createElement("h3");
+      h3.className = "title";
+      h3.textContent = p.name || "Ohne Namen";
+
+      const priceDiv = document.createElement("div");
+      priceDiv.className = "price";
+      const finalEl = document.createElement("div");
+      finalEl.className = "final";
+      finalEl.textContent = fmtEUR(final);
+
+      priceDiv.appendChild(finalEl);
+      if(d>0){
+        const orig = document.createElement("div");
+        orig.className = "orig";
+        orig.textContent = fmtEUR(price);
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = "-" + d + "%";
+        priceDiv.appendChild(orig);
+        priceDiv.appendChild(badge);
+      }
+
+      const acts = document.createElement("div");
+      acts.className = "actions";
+      if(p.youtube){
+        const a = document.createElement("a");
+        a.href = p.youtube; a.target = "_blank"; a.rel="noopener";
+        a.className = "btn glossy";
+        a.innerHTML = "YouTube ansehen ▶";
+        acts.appendChild(a);
+      }
+      const share = document.createElement("button");
+      share.className = "btn glossy";
+      share.textContent = "Link kopieren";
+      share.onclick = async () => {
+        const url = location.origin + location.pathname + "#p=" + encodeURIComponent(p.name||"");
+        try{
+          await navigator.clipboard.writeText(url);
+          share.textContent = "Kopiert ✔";
+          setTimeout(()=> share.textContent="Link kopieren", 1200);
+        }catch{
+          alert(url);
+        }
+      };
+      acts.appendChild(share);
+
+      info.appendChild(h3);
+      info.appendChild(priceDiv);
+      info.appendChild(acts);
+
+      card.appendChild(media);
+      card.appendChild(info);
+      grid.appendChild(card);
+    }
+  }
+
+  function ensureDemo(){
+    if(state.products.length===0){
+      state.products.push({
+        name:"Demo Cake 'Neon Sky'",
+        price:39.99,
+        discount:20,
+        image:"https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=1200",
+        youtube:"https://youtu.be/dQw4w9WgXcQ"
+      });
+      save();
+    }
+  }
+
+  // Admin modal logic
+  const modal = €("#adminModal");
+  const adminBtn = €("#adminBtn");
+  const adminState = €("#adminState");
+  adminBtn.addEventListener("click", () => {
+    modal.classList.add("open");
+    (€("#adminLogin")).style.display = state.admin ? "none" : "block";
+    (€("#adminPanel")).style.display = state.admin ? "block" : "none";
+    (€("#adminCode")).value = "";
+    (€("#adminCode")).focus();
+  });
+  €("#cancelLogin").onclick = () => modal.classList.remove("open");
+  €("#doLogin").onclick = () => {
+    const code = (€("#adminCode")).value.trim();
+    if(code === ADMIN_CODE){
+      state.admin = true;
+      adminState.style.display = "inline-block";
+      (€("#adminLogin")).style.display = "none";
+      (€("#adminPanel")).style.display = "block";
+    }else{
+      alert("Falscher Code");
+    }
   };
+
+  // Admin add
+  €("#addBtn").onclick = () => {
+    const name = (€("#pName")).value.trim();
+    const price = parseFloat((€("#pPrice")).value);
+    const discount = parseFloat((€("#pDiscount")).value || "0");
+    const image = (€("#pImage")).value.trim();
+    const youtube = (€("#pYouTube")).value.trim();
+    if(!name || isNaN(price)){
+      alert("Bitte Name und Preis angeben.");
+      return;
+    }
+    state.products.push({name, price, discount, image, youtube});
+    save(); render();
+    // reset minimal fields
+    (€("#pName")).value = "";
+    (€("#pPrice")).value = "";
+    (€("#pDiscount")).value = "";
+    (€("#pImage")).value = "";
+    (€("#pYouTube")).value = "";
+  };
+
+  // Export / Clear
+  €("#exportBtn").onclick = () => {
+    const data = JSON.stringify(state.products, null, 2);
+    const blob = new Blob([data], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "block_pyrotechnics_products.json";
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  };
+  €("#clearBtn").onclick = () => {
+    if(confirm("Alle Artikel löschen?")){
+      state.products = []; save(); render();
+    }
+  };
+
+  // Search live
+  €("#search").addEventListener("input", render);
+
+  // Init
+  (€("#year")).textContent = new Date().getFullYear();
+  load();
+  ensureDemo();
+  render();
+
+  // Deep-link: if #p=Name present, prefill search
+  const m = location.hash.match(/#p=([^&]+)/);
+  if(m){ €("#search").value = decodeURIComponent(m[1]); render(); }
 })();
 </script>
-
-
-<script id="ULTRA_LOGOUT_ON_LOAD">
-try{ localStorage.removeItem('ultra_admin_ok_v1'); }catch(e){}
-</script>
-
-
-<!-- Firebase realtime sync -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, collection, onSnapshot, query, orderBy, deleteDoc, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDWDrVw28pl9TayEq5FlsjHFxMK99P2d74",
-    authDomain: "block-pyrotechnics.firebaseapp.com",
-    projectId: "block-pyrotechnics",
-    storageBucket: "block-pyrotechnics.firebasestorage.app",
-    messagingSenderId: "578672617755",
-    appId: "1:578672617755:web:2c46bfd14ba35799f40bbe",
-    measurementId: "G-3QLL181155"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
-  // Multiple admins supported: login UI collects the admin email
-
-  let unsubOrders=null; let unsubIdeas=null;
-  window.FB = {
-    app, db, auth,
-    signInWithCred: async (email, code) => {
-      try { await signInWithEmailAndPassword(auth, email, String(code)); return true; }
-      catch(e){ console.warn('Auth failed', e); return false; }
-    },
-    signOut: async () => { try{ await signOut(auth);}catch(e){} },
-    bulkSaveOverrides: async (rows) => {
-      for(const r of rows){
-        const data = {}; data.link = r.link||\"\"; data.img = r.img||\"\";
-        if(typeof r.price === 'number' && !Number.isNaN(r.price)) data.price=r.price; else data.price=null;
-        await setDoc(doc(db,'overrides', r.id), data, { merge: true });
-      }
-    },
-    addCustom: async (p) => setDoc(doc(db,'customProducts', p.id), p, {merge:true}),
-    deleteCustom: async (id) => deleteDoc(doc(db,'customProducts', id)),
-    saveOrder: async (code, order) => setDoc(doc(db,'orders', code), {...order, when: serverTimestamp()}, {merge:false}),
-    saveIdea: async ({name,text}) => { try{ const ref = await addDoc(collection(db,'ideas'), {name:name||'', text, when: serverTimestamp()}); return ref.id; } catch(e){ console.warn(e); return false; } },
-    seedProducts: async (base) => { for(const p of base){ const id=p.id||p.name; await setDoc(doc(db,'products', id), p, {merge:true}); } }
-  };
-
-  onSnapshot(collection(db,'overrides'), (snap)=>{
-    const o={}; snap.forEach(d=> o[d.id]=d.data());
-    window.FB_OVERRIDES = o;
-    if(window.renderGrid){ renderGrid(); applyLinks?.(); applyFilter?.(); }
-  });
-    onSnapshot(collection(db,'products'), (snap)=>{
-    const list=[]; snap.forEach(d=>{ const data=d.data(); list.push({id: d.id, ...data}); });
-    window.FB_PRODUCTS = list; if(window.renderGrid){ renderGrid(); applyLinks?.(); applyFilter?.(); }
-  });
-onSnapshot(collection(db,'customProducts'), (snap)=>{
-    const list=[]; snap.forEach(d=> list.push(d.data()));
-    window.FB_CUSTOM = list;
-    if(window.renderGrid){ renderGrid(); applyLinks?.(); applyFilter?.(); }
-  });
-  // orders subscription will be bound on auth change
-  onAuthStateChanged(auth, (user)=>{
-    console.log('Auth state:', user? user.email : 'signed out');
-    try{ if(unsubOrders){unsubOrders();unsubOrders=null;} }catch(e){}
-    if(user){ 
-      unsubOrders = onSnapshot(query(collection(db,'orders'), orderBy('when','desc')), (snap)=>{
-        const o={}; snap.forEach(d=> o[d.id]=d.data()); window.FB_ORDERS=o; });
-      unsubIdeas = onSnapshot(query(collection(db,'ideas'), orderBy('when','desc')), (snap)=>{
-        const items=[]; snap.forEach(d=> items.push({id:d.id, ...d.data()})); window.FB_IDEAS=items; if(window.renderAdmin) { /* refresh if on tab */ }
-      });
-    }
-  });
-</script>
-
 </body>
 </html>
