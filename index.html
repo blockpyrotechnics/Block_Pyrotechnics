@@ -1,1441 +1,541 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pyro‑Shop – Neu (stabil, iPhone‑ready)</title>
+<title>Silvester-Shop – Step 5 (Produkte & Export)</title>
 <style>
+:root{
+  --bg:#0a0f15;--panel:#0e1621;--card:#111a26;--bar:#0b131c;
+  --border:#1e2a38;--muted:#9db6ce;--text:#e6f2ff;--accent:#00d4ff;--good:#30d158;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0b121b,#0c1520);border-bottom:1px solid var(--border)}
+.head{max-width:1000px;margin:0 auto;padding:10px 12px;display:flex;gap:10px;align-items:center}
+h1{margin:0;font-size:16px;font-weight:800}
+.badge{font-size:12px;color:var(--muted);margin-left:6px}
+.sbar{max-width:1000px;margin:6px auto 0;padding:0 12px;position:relative}
+#q{width:100%;padding:11px 12px;border-radius:12px;border:1px solid #264159;background:#0c1520;color:#e6f2ff}
+#menu{position:absolute;left:12px;right:12px;top:44px;background:#0b131c;border:1px solid var(--border);border-radius:10px;display:none;overflow:hidden;z-index:100;pointer-events:none}
+#menu.open{display:block;pointer-events:auto}
+#menu button{width:100%;text-align:left;background:#0e1926;border:none;border-bottom:1px solid #132235;color:#d7e8ff;padding:10px}
+.chips{max-width:1000px;margin:10px auto 0;padding:0 12px;display:flex;gap:8px;overflow:auto}
+.chip{background:#101a28;border:1px solid #24374a;color:#cfe7ff;padding:8px 12px;border-radius:999px;white-space:nowrap;cursor:pointer;font-size:13px}
+.chip.active{background:#153451;border-color:#2b5676}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px;max-width:1000px;margin:0 auto 0}
+@media(min-width:980px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.thumb{position:relative;display:flex;align-items:center;justify-content:center;height:120px;background:linear-gradient(135deg,#0f1b2a,#143a64);text-decoration:none;color:#cfe7ff;overflow:hidden}
+.thumb.hasimg{background-size:cover;background-position:center}
+.thumb span.cta{position:absolute;inset:auto 0 0 0;display:block;padding:10px 0;text-align:center;background:linear-gradient(180deg,transparent,rgba(0,0,0,.35));font-weight:800}
+.name{font-weight:700;font-size:14px;padding:10px 12px 0}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px 12px}
+.price{color:#00d4ff;font-weight:800}
+.ctls{display:flex;gap:8px;align-items:center}
+.qty{width:64px;padding:8px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff}
+.btn{background:#14283a;color:#e9f4ff;border:1px solid #24455c;border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.cartbar{position:fixed;left:0;right:0;bottom:0;background:#0b131c;border-top:1px solid var(--border);padding:10px 12px;display:flex;gap:10px;align-items:center;z-index:40}
+.cartbar .sum{flex:1;color:#9db6ce;font-size:13px}
+.cartbar .n{font-weight:800;color:#e6f2ff}
+.modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(4,10,18,.7);z-index:45}
+.sheet{width:min(900px,92vw);max-height:86vh;overflow:auto;background:#0e1621;border:1px solid #1e2a38;border-radius:12px;padding:16px}
+.title{font-weight:800;margin:0 0 10px;font-size:16px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px dashed #1b2b3f}
+.row:last-child{border-bottom:none}
+.hint{color:#9db6ce;font-size:12px}
+#spacer{height:calc(220px + env(safe-area-inset-bottom,0px))}
 
-  :root{--bg:#0a0f15;--card:#111824;--bar:#0b141e;--border:#1e2a38;--accent:#00d4ff;--text:#e6f2ff;--muted:#a7c0d9;--good:#30d158;}
-  *{box-sizing:border-box} html,body{height:100%}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
-  header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0b121b,#0c1520);border-bottom:1px solid var(--border)}
-  .headrow{max-width:900px;margin:0 auto;padding:10px 12px;display:flex;gap:10px;align-items:center}
-  h1{font-size:16px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .badge{font-size:12px;color:var(--muted)}
-  .searchbar{max-width:900px;margin:8px auto 0;padding:0 12px;position:relative}
-  #search{width:100%;padding:11px 12px;border-radius:12px;border:1px solid #264159;background:#0c1520;color:var(--text);outline:none}
-  #cmdmenu{position:absolute;left:12px;right:12px;top:44px;background:#0b131c;border:1px solid #1e2a38;border-radius:10px;display:none;overflow:hidden;z-index:100;pointer-events:none}
-  #cmdmenu.open{display:block;pointer-events:auto}
-  #cmdmenu button{width:100%;text-align:left;padding:10px 12px;background:#0e1926;border:none;border-bottom:1px solid #132235;color:#d7e8ff}
-  #cmdmenu button strong{margin-right:8px}
-  .chips{max-width:900px;margin:10px auto 0;padding:0 12px;display:flex;gap:8px;overflow:auto}
-  .chip{background:#101a28;border:1px solid #24374a;color:#cfe7ff;padding:8px 12px;border-radius:999px;white-space:nowrap;cursor:pointer;font-size:13px}
-  .chip.active{background:#153451;border-color:#2b5676}
-  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px;max-width:900px;margin:0 auto 96px}
-  @media(min-width:980px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
-  .thumb{display:flex;align-items:center;justify-content:center;height:120px;background:linear-gradient(135deg,#0f1b2a,#143a64);text-decoration:none;color:#cfe7ff;user-select:none}
-  .thumb span{font-weight:700}
-  .body{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
-  .name{font-weight:700;font-size:14px;line-height:1.2}
-  .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
-  .price{color:var(--accent);font-weight:800}
-  .ctls{display:flex;gap:8px;align-items:center}
-  input[type=number]{width:68px;padding:8px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:var(--text)}
-  button{background:#14283a;color:#e9f4ff;border:1px solid #24455c;border-radius:10px;padding:9px 12px;font-weight:600;cursor:pointer}
-  button:hover{filter:brightness(1.1)}
-  .cartbar{position:fixed;left:0;right:0;bottom:0;background:#0c151f;border-top:1px solid var(--border);padding:10px 12px;display:flex;gap:10px;align-items:center;z-index:40}
-  .cartbar .summary{font-size:13px;color:var(--muted);flex:1}
-  .cartbar .count{font-weight:700}
-  .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(4,10,18,.7);z-index:50}
-  .sheet{width:min(860px,92vw);max-height:86vh;overflow:auto;background:#0e1621;border:1px solid var(--border);border-radius:12px;padding:16px}
-  .modal .title{font-size:16px;font-weight:800;margin:0 0 8px 0}
-  .rowline{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed #1b2b3f}
-  .rowline:last-child{border-bottom:none}
-  .hint{color:#9db6ce;font-size:12px}
-  .admintabs{display:flex;gap:8px;margin-bottom:10px}
-  .tabbtn{background:#13334a}
-  .logout{margin-left:auto}
-  /* Prevent hidden overlays from blocking taps */
-  .modal{pointer-events:none} .modal[style*="display: grid"]{pointer-events:auto}
+.admin-badge{margin-left:auto;background:#14354d;border:1px solid #2a5877;color:#cfe7ff;padding:6px 10px;border-radius:999px;font-size:12px;display:none}
+.fab{position:fixed;right:16px;bottom:86px;width:52px;height:52px;border-radius:999px;border:1px solid #2a5877;background:#14354d;color:#e6f2ff;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:50}
+@media(min-width:980px){.fab{bottom:26px;right:26px}}
 
 </style>
 </head>
 <body>
   <header>
-    <div class="headrow">
-      <h1>Silvester‑Shop <span class="badge">Neu · stabil</span></h1>
+    <div class="head">
+      <h1>Silvester-Shop<span class="badge">Step 5 · Produkte & Export</span></h1><span id="adminBadge" class="admin-badge">Admin aktiv</span>
+      
     </div>
-    <div class="searchbar">
-      <input id="search" placeholder="Suchen oder /admin, /codes, /reset">
-      <div id="cmdmenu"></div>
+    <div class="sbar">
+      <input id="q" placeholder="Suchen…">
+      <div id="menu"></div>
     </div>
     <div class="chips"></div>
   </header>
 
-  <main class="grid">
-    
-    <article class="card" data-name="skarb (funke)" data-cat="batterien" data-id="skarb_%28funke%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Skarb (Funke)</div>
-        <div class="row">
-          <div class="price">48.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="skarb_%28funke%29">
-            <button data-action="add" data-id="skarb_%28funke%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
+  <main class="grid"></main>
+  <div id="spacer"></div>
 
-    <article class="card" data-name="krawall monster 4" data-cat="batterien" data-id="krawall_monster_4">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Krawall Monster 4</div>
-        <div class="row">
-          <div class="price">12.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="krawall_monster_4">
-            <button data-action="add" data-id="krawall_monster_4">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="krawall monster 3" data-cat="batterien" data-id="krawall_monster_3">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Krawall Monster 3</div>
-        <div class="row">
-          <div class="price">12.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="krawall_monster_3">
-            <button data-action="add" data-id="krawall_monster_3">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="knisterfeuer b" data-cat="klein" data-id="knisterfeuer_b">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Knisterfeuer B</div>
-        <div class="row">
-          <div class="price">4.50 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="knisterfeuer_b">
-            <button data-action="add" data-id="knisterfeuer_b">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="vogelschreck 100 stk (funke)" data-cat="singles" data-id="vogelschreck_100_stk_%28funke%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Vogelschreck 100 Stk (Funke)</div>
-        <div class="row">
-          <div class="price">58.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="vogelschreck_100_stk_%28funke%29">
-            <button data-action="add" data-id="vogelschreck_100_stk_%28funke%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="big bang kasjopeja (jorge jw06)" data-cat="batterien" data-id="big_bang_kasjopeja_%28jorge_jw06%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Big Bang Kasjopeja (Jorge JW06)</div>
-        <div class="row">
-          <div class="price">9.50 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="big_bang_kasjopeja_%28jorge_jw06%29">
-            <button data-action="add" data-id="big_bang_kasjopeja_%28jorge_jw06%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="big bang wenus (jorge jw08)" data-cat="batterien" data-id="big_bang_wenus_%28jorge_jw08%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Big Bang Wenus (Jorge JW08)</div>
-        <div class="row">
-          <div class="price">15.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="big_bang_wenus_%28jorge_jw08%29">
-            <button data-action="add" data-id="big_bang_wenus_%28jorge_jw08%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="traca 10 meter" data-cat="knaller" data-id="traca_10_meter">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Traca 10 Meter</div>
-        <div class="row">
-          <div class="price">11.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="traca_10_meter">
-            <button data-action="add" data-id="traca_10_meter">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="signalrakete 901 mit stab" data-cat="singles" data-id="signalrakete_901_mit_stab">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Signalrakete 901 mit Stab</div>
-        <div class="row">
-          <div class="price">9.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="signalrakete_901_mit_stab">
-            <button data-action="add" data-id="signalrakete_901_mit_stab">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="urania (argento mini-serie)" data-cat="serie" data-id="urania_%28argento_mini-serie%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Urania (Argento Mini-Serie)</div>
-        <div class="row">
-          <div class="price">19.99 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="urania_%28argento_mini-serie%29">
-            <button data-action="add" data-id="urania_%28argento_mini-serie%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="acryl (argento mini-serie)" data-cat="serie" data-id="acryl_%28argento_mini-serie%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Acryl (Argento Mini-Serie)</div>
-        <div class="row">
-          <div class="price">19.99 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="acryl_%28argento_mini-serie%29">
-            <button data-action="add" data-id="acryl_%28argento_mini-serie%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="demonio (argento mini-serie)" data-cat="serie" data-id="demonio_%28argento_mini-serie%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Demonio (Argento Mini-Serie)</div>
-        <div class="row">
-          <div class="price">19.99 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="demonio_%28argento_mini-serie%29">
-            <button data-action="add" data-id="demonio_%28argento_mini-serie%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="orchid (argento mini-serie)" data-cat="serie" data-id="orchid_%28argento_mini-serie%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Orchid (Argento Mini-Serie)</div>
-        <div class="row">
-          <div class="price">19.99 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="orchid_%28argento_mini-serie%29">
-            <button data-action="add" data-id="orchid_%28argento_mini-serie%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="amandra (argento mini-serie)" data-cat="serie" data-id="amandra_%28argento_mini-serie%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Amandra (Argento Mini-Serie)</div>
-        <div class="row">
-          <div class="price">19.99 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="amandra_%28argento_mini-serie%29">
-            <button data-action="add" data-id="amandra_%28argento_mini-serie%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="capri (argento mini-serie)" data-cat="serie" data-id="capri_%28argento_mini-serie%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Capri (Argento Mini-Serie)</div>
-        <div class="row">
-          <div class="price">19.99 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="capri_%28argento_mini-serie%29">
-            <button data-action="add" data-id="capri_%28argento_mini-serie%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="plasma (argento mini-serie)" data-cat="serie" data-id="plasma_%28argento_mini-serie%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Plasma (Argento Mini-Serie)</div>
-        <div class="row">
-          <div class="price">19.99 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="plasma_%28argento_mini-serie%29">
-            <button data-action="add" data-id="plasma_%28argento_mini-serie%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="glitzergold (argento)" data-cat="batterien" data-id="glitzergold_%28argento%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Glitzergold (Argento)</div>
-        <div class="row">
-          <div class="price">15.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="glitzergold_%28argento%29">
-            <button data-action="add" data-id="glitzergold_%28argento%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="pluc (iskra line)" data-cat="batterien" data-id="pluc_%28iskra_line%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Pluc (Iskra Line)</div>
-        <div class="row">
-          <div class="price">13.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="pluc_%28iskra_line%29">
-            <button data-action="add" data-id="pluc_%28iskra_line%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="whistling palms (funke)" data-cat="batterien" data-id="whistling_palms_%28funke%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Whistling Palms (Funke)</div>
-        <div class="row">
-          <div class="price">80.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="whistling_palms_%28funke%29">
-            <button data-action="add" data-id="whistling_palms_%28funke%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="screaming chrysanthemum (funke)" data-cat="batterien" data-id="screaming_chrysanthemum_%28funke%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Screaming Chrysanthemum (Funke)</div>
-        <div class="row">
-          <div class="price">99.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="screaming_chrysanthemum_%28funke%29">
-            <button data-action="add" data-id="screaming_chrysanthemum_%28funke%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="neon kong (funke)" data-cat="batterien" data-id="neon_kong_%28funke%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Neon Kong (Funke)</div>
-        <div class="row">
-          <div class="price">155.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="neon_kong_%28funke%29">
-            <button data-action="add" data-id="neon_kong_%28funke%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="fermata 100a (funke)" data-cat="batterien" data-id="fermata_100a_%28funke%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Fermata 100A (Funke)</div>
-        <div class="row">
-          <div class="price">185.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="fermata_100a_%28funke%29">
-            <button data-action="add" data-id="fermata_100a_%28funke%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="elegant night (funke)" data-cat="batterien" data-id="elegant_night_%28funke%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Elegant Night (Funke)</div>
-        <div class="row">
-          <div class="price">210.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="elegant_night_%28funke%29">
-            <button data-action="add" data-id="elegant_night_%28funke%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="corolla blue (funke)" data-cat="batterien" data-id="corolla_blue_%28funke%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Corolla Blue (Funke)</div>
-        <div class="row">
-          <div class="price">185.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="corolla_blue_%28funke%29">
-            <button data-action="add" data-id="corolla_blue_%28funke%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="snowblind (funke)" data-cat="batterien" data-id="snowblind_%28funke%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Snowblind (Funke)</div>
-        <div class="row">
-          <div class="price">185.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="snowblind_%28funke%29">
-            <button data-action="add" data-id="snowblind_%28funke%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="kolos 50mm (iskra line)" data-cat="mm50" data-id="kolos_50mm_%28iskra_line%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Kolos 50mm (Iskra Line)</div>
-        <div class="row">
-          <div class="price">90.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="kolos_50mm_%28iskra_line%29">
-            <button data-action="add" data-id="kolos_50mm_%28iskra_line%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="hydra 50mm (iskra line)" data-cat="mm50" data-id="hydra_50mm_%28iskra_line%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Hydra 50mm (Iskra Line)</div>
-        <div class="row">
-          <div class="price">70.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="hydra_50mm_%28iskra_line%29">
-            <button data-action="add" data-id="hydra_50mm_%28iskra_line%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="pytwór 50mm (iskra line)" data-cat="mm50" data-id="pytw%C3%B3r_50mm_%28iskra_line%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Pytwór 50mm (Iskra Line)</div>
-        <div class="row">
-          <div class="price">95.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="pytw%C3%B3r_50mm_%28iskra_line%29">
-            <button data-action="add" data-id="pytw%C3%B3r_50mm_%28iskra_line%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="bloom blossom (panda)" data-cat="batterien" data-id="bloom_blossom_%28panda%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Bloom Blossom (Panda)</div>
-        <div class="row">
-          <div class="price">22.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="bloom_blossom_%28panda%29">
-            <button data-action="add" data-id="bloom_blossom_%28panda%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="fire (panda)" data-cat="batterien" data-id="fire_%28panda%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Fire (Panda)</div>
-        <div class="row">
-          <div class="price">15.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="fire_%28panda%29">
-            <button data-action="add" data-id="fire_%28panda%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="lone wolf (panda)" data-cat="batterien" data-id="lone_wolf_%28panda%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Lone Wolf (Panda)</div>
-        <div class="row">
-          <div class="price">29.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="lone_wolf_%28panda%29">
-            <button data-action="add" data-id="lone_wolf_%28panda%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="leider geil (hey!)" data-cat="batterien" data-id="leider_geil_%28hey%21%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Leider Geil (Hey!)</div>
-        <div class="row">
-          <div class="price">66.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="leider_geil_%28hey%21%29">
-            <button data-action="add" data-id="leider_geil_%28hey%21%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="petarda set blau" data-cat="knaller" data-id="petarda_set_blau">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Petarda Set blau</div>
-        <div class="row">
-          <div class="price">11.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="petarda_set_blau">
-            <button data-action="add" data-id="petarda_set_blau">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="dum bum 5g" data-cat="knaller" data-id="dum_bum_5g">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Dum Bum 5g</div>
-        <div class="row">
-          <div class="price">16.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="dum_bum_5g">
-            <button data-action="add" data-id="dum_bum_5g">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="pyroshow 2000 prometelis" data-cat="verbuende" data-id="pyroshow_2000_prometelis">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Pyroshow 2000 Prometelis</div>
-        <div class="row">
-          <div class="price">135.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="pyroshow_2000_prometelis">
-            <button data-action="add" data-id="pyroshow_2000_prometelis">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="pyroshow 2000 hermes" data-cat="verbuende" data-id="pyroshow_2000_hermes">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Pyroshow 2000 Hermes</div>
-        <div class="row">
-          <div class="price">130.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="pyroshow_2000_hermes">
-            <button data-action="add" data-id="pyroshow_2000_hermes">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="pyroshow 1000 palermo" data-cat="batterien" data-id="pyroshow_1000_palermo">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Pyroshow 1000 Palermo</div>
-        <div class="row">
-          <div class="price">70.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="pyroshow_1000_palermo">
-            <button data-action="add" data-id="pyroshow_1000_palermo">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="pyroshow talos" data-cat="batterien" data-id="pyroshow_talos">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Pyroshow Talos</div>
-        <div class="row">
-          <div class="price">60.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="pyroshow_talos">
-            <button data-action="add" data-id="pyroshow_talos">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="pretty in pink" data-cat="batterien" data-id="pretty_in_pink">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Pretty in Pink</div>
-        <div class="row">
-          <div class="price">35.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="pretty_in_pink">
-            <button data-action="add" data-id="pretty_in_pink">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="cosmic chicken" data-cat="batterien" data-id="cosmic_chicken">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Cosmic Chicken</div>
-        <div class="row">
-          <div class="price">9.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="cosmic_chicken">
-            <button data-action="add" data-id="cosmic_chicken">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="made in japan" data-cat="batterien" data-id="made_in_japan">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Made in Japan</div>
-        <div class="row">
-          <div class="price">79.99 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="made_in_japan">
-            <button data-action="add" data-id="made_in_japan">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="candy mountain" data-cat="verbuende" data-id="candy_mountain">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Candy Mountain</div>
-        <div class="row">
-          <div class="price">99.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="candy_mountain">
-            <button data-action="add" data-id="candy_mountain">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="raptor princess" data-cat="batterien" data-id="raptor_princess">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Raptor Princess</div>
-        <div class="row">
-          <div class="price">85.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="raptor_princess">
-            <button data-action="add" data-id="raptor_princess">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="heisenberg (volt!)" data-cat="verbuende" data-id="heisenberg_%28volt%21%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Heisenberg (VOLT!)</div>
-        <div class="row">
-          <div class="price">299.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="heisenberg_%28volt%21%29">
-            <button data-action="add" data-id="heisenberg_%28volt%21%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="brutal buffalo" data-cat="verbuende" data-id="brutal_buffalo">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Brutal Buffalo</div>
-        <div class="row">
-          <div class="price">100.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="brutal_buffalo">
-            <button data-action="add" data-id="brutal_buffalo">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="cakebox speedtrap (volt!)" data-cat="verbuende" data-id="cakebox_speedtrap_%28volt%21%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Cakebox Speedtrap (VOLT!)</div>
-        <div class="row">
-          <div class="price">140.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="cakebox_speedtrap_%28volt%21%29">
-            <button data-action="add" data-id="cakebox_speedtrap_%28volt%21%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="cake white red rebel (volt!)" data-cat="batterien" data-id="cake_white_red_rebel_%28volt%21%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Cake White Red Rebel (VOLT!)</div>
-        <div class="row">
-          <div class="price">29.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="cake_white_red_rebel_%28volt%21%29">
-            <button data-action="add" data-id="cake_white_red_rebel_%28volt%21%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="big balls" data-cat="klein" data-id="big_balls">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Big Balls</div>
-        <div class="row">
-          <div class="price">4.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="big_balls">
-            <button data-action="add" data-id="big_balls">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="megacatling" data-cat="singles" data-id="megacatling">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Megacatling</div>
-        <div class="row">
-          <div class="price">25.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="megacatling">
-            <button data-action="add" data-id="megacatling">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="sonora (el gato)" data-cat="batterien" data-id="sonora_%28el_gato%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Sonora (El Gato)</div>
-        <div class="row">
-          <div class="price">48.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="sonora_%28el_gato%29">
-            <button data-action="add" data-id="sonora_%28el_gato%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="napad (iskra line)" data-cat="batterien" data-id="napad_%28iskra_line%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Napad (Iskra Line)</div>
-        <div class="row">
-          <div class="price">70.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="napad_%28iskra_line%29">
-            <button data-action="add" data-id="napad_%28iskra_line%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="kameleon (iskra line)" data-cat="batterien" data-id="kameleon_%28iskra_line%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Kameleon (Iskra Line)</div>
-        <div class="row">
-          <div class="price">40.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="kameleon_%28iskra_line%29">
-            <button data-action="add" data-id="kameleon_%28iskra_line%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="berserk (iskra line)" data-cat="batterien" data-id="berserk_%28iskra_line%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Berserk (Iskra Line)</div>
-        <div class="row">
-          <div class="price">70.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="berserk_%28iskra_line%29">
-            <button data-action="add" data-id="berserk_%28iskra_line%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="double deck red (xplode)" data-cat="batterien" data-id="double_deck_red_%28xplode%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Double Deck RED (Xplode)</div>
-        <div class="row">
-          <div class="price">35.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="double_deck_red_%28xplode%29">
-            <button data-action="add" data-id="double_deck_red_%28xplode%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="double deck blue (xplode)" data-cat="batterien" data-id="double_deck_blue_%28xplode%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Double Deck BLUE (Xplode)</div>
-        <div class="row">
-          <div class="price">35.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="double_deck_blue_%28xplode%29">
-            <button data-action="add" data-id="double_deck_blue_%28xplode%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="double deck purple (xplode)" data-cat="batterien" data-id="double_deck_purple_%28xplode%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Double Deck PURPLE (Xplode)</div>
-        <div class="row">
-          <div class="price">35.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="double_deck_purple_%28xplode%29">
-            <button data-action="add" data-id="double_deck_purple_%28xplode%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="blitz krums 16 shot (iskra)" data-cat="batterien" data-id="blitz_krums_16_shot_%28iskra%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Blitz Krums 16 Shot (Iskra)</div>
-        <div class="row">
-          <div class="price">10.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="blitz_krums_16_shot_%28iskra%29">
-            <button data-action="add" data-id="blitz_krums_16_shot_%28iskra%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="blitz krums 25 shot (iskra)" data-cat="batterien" data-id="blitz_krums_25_shot_%28iskra%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Blitz Krums 25 Shot (Iskra)</div>
-        <div class="row">
-          <div class="price">16.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="blitz_krums_25_shot_%28iskra%29">
-            <button data-action="add" data-id="blitz_krums_25_shot_%28iskra%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="blitz krums 50 shot (iskra)" data-cat="batterien" data-id="blitz_krums_50_shot_%28iskra%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Blitz Krums 50 Shot (Iskra)</div>
-        <div class="row">
-          <div class="price">25.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="blitz_krums_50_shot_%28iskra%29">
-            <button data-action="add" data-id="blitz_krums_50_shot_%28iskra%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="blitz krums 100 shot (iskra)" data-cat="batterien" data-id="blitz_krums_100_shot_%28iskra%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Blitz Krums 100 Shot (Iskra)</div>
-        <div class="row">
-          <div class="price">50.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="blitz_krums_100_shot_%28iskra%29">
-            <button data-action="add" data-id="blitz_krums_100_shot_%28iskra%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="exodus (riakeo)" data-cat="verbuende" data-id="exodus_%28riakeo%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Exodus (Riakeo)</div>
-        <div class="row">
-          <div class="price">179.99 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="exodus_%28riakeo%29">
-            <button data-action="add" data-id="exodus_%28riakeo%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="vengeance (riakeo)" data-cat="verbuende" data-id="vengeance_%28riakeo%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Vengeance (Riakeo)</div>
-        <div class="row">
-          <div class="price">179.99 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="vengeance_%28riakeo%29">
-            <button data-action="add" data-id="vengeance_%28riakeo%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="miami (riakeo)" data-cat="verbuende" data-id="miami_%28riakeo%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Miami (Riakeo)</div>
-        <div class="row">
-          <div class="price">179.99 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="miami_%28riakeo%29">
-            <button data-action="add" data-id="miami_%28riakeo%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="terremoto 1s (el gato)" data-cat="batterien" data-id="terremoto_1s_%28el_gato%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Terremoto 1S (El Gato)</div>
-        <div class="row">
-          <div class="price">35.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="terremoto_1s_%28el_gato%29">
-            <button data-action="add" data-id="terremoto_1s_%28el_gato%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="terremoto especial 1s (el gato)" data-cat="batterien" data-id="terremoto_especial_1s_%28el_gato%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Terremoto Especial 1S (El Gato)</div>
-        <div class="row">
-          <div class="price">35.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="terremoto_especial_1s_%28el_gato%29">
-            <button data-action="add" data-id="terremoto_especial_1s_%28el_gato%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="terremoto 10s (el gato)" data-cat="batterien" data-id="terremoto_10s_%28el_gato%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Terremoto 10S (El Gato)</div>
-        <div class="row">
-          <div class="price">35.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="terremoto_10s_%28el_gato%29">
-            <button data-action="add" data-id="terremoto_10s_%28el_gato%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="terremoto 36s (el gato)" data-cat="batterien" data-id="terremoto_36s_%28el_gato%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Terremoto 36S (El Gato)</div>
-        <div class="row">
-          <div class="price">35.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="terremoto_36s_%28el_gato%29">
-            <button data-action="add" data-id="terremoto_36s_%28el_gato%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="fiesta de colores (el gato)" data-cat="batterien" data-id="fiesta_de_colores_%28el_gato%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Fiesta De Colores (El Gato)</div>
-        <div class="row">
-          <div class="price">160.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="fiesta_de_colores_%28el_gato%29">
-            <button data-action="add" data-id="fiesta_de_colores_%28el_gato%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="fiesta dorada (el gato)" data-cat="batterien" data-id="fiesta_dorada_%28el_gato%29">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Fiesta Dorada (El Gato)</div>
-        <div class="row">
-          <div class="price">180.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="fiesta_dorada_%28el_gato%29">
-            <button data-action="add" data-id="fiesta_dorada_%28el_gato%29">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="viking 50 einzelpreis" data-cat="knaller" data-id="viking_50_einzelpreis">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Viking 50 Einzelpreis</div>
-        <div class="row">
-          <div class="price">9.50 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="viking_50_einzelpreis">
-            <button data-action="add" data-id="viking_50_einzelpreis">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-
-    <article class="card" data-name="viking 50 – 4er pack" data-cat="knaller" data-id="viking_50_%E2%80%93_4er_pack">
-      <a class="thumb" data-action="open-link" href="#" rel="noopener noreferrer"><span>Click mich</span></a>
-      <div class="body">
-        <div class="name">Viking 50 – 4er Pack</div>
-        <div class="row">
-          <div class="price">35.00 €</div>
-          <div class="ctls">
-            <input type="number" min="1" value="1" data-qty-for="viking_50_%E2%80%93_4er_pack">
-            <button data-action="add" data-id="viking_50_%E2%80%93_4er_pack">In den Korb</button>
-          </div>
-        </div>
-      </div>
-    </article>
-    
-  </main>
-
-  <!-- Cart bar -->
+  <button class="fab" id="btnIdeas" title="Idee melden">💡</button>
   <div class="cartbar">
-    <div class="summary">Warenkorb: <span class="count" id="itemCount">0</span> · Summe: <span class="count" id="cartTotal">0,00</span> €</div>
-    <button id="openCart">Warenkorb öffnen</button>
-    <button id="buyNow">Kaufen / Code erhalten</button>
+    <div class="sum">Warenkorb: <span class="n" id="n">0</span> · Summe: <span class="n" id="s">0,00</span> €</div>
+    <button class="btn" id="openCart">Warenkorb öffnen</button>
+    <button class="btn" id="buy">Kaufen / Code erhalten</button>
   </div>
 
-  <!-- Cart modal -->
-  <div class="modal" id="cartModal">
+  <!-- Cart Modal -->
+  <div class="modal" id="cart">
     <div class="sheet">
       <h3 class="title">🛒 Dein Warenkorb</h3>
-      <div id="cartRows"></div>
-      <div class="rowline"><div><strong>Summe</strong></div><div id="cartSum">0,00 €</div></div>
-      <div class="hint" id="cartCnt">0 Artikel</div>
-      <div style="margin-top:10px;display:flex;gap:8px">
-        <button onclick="clearCart()">Leeren</button>
-        <button onclick="document.getElementById('cartModal').style.display='none'">Schließen</button>
+      <div id="rows"></div>
+      <div class="row"><div><strong>Summe</strong></div><div id="sum">0,00 €</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="clearCart()">Leeren</button>
+        <button class="btn" onclick="document.getElementById('cart').style.display='none'">Schließen</button>
       </div>
     </div>
   </div>
 
-  <!-- Admin modal -->
-  <div class="modal" id="adminModal">
-    <div class="sheet" id="adminSheet"></div>
+
+  <!-- Ideas Modal -->
+  <div class="modal" id="ideas">
+    <div class="sheet" id="isheet"></div>
+  </div>
+
+  <!-- Admin Modal -->
+  <div class="modal" id="admin">
+    <div class="sheet" id="asheet"></div>
   </div>
 
   <script>
-// --- GH Pages & iOS friendly bootstraps ---
-(function(){
-  const box=document.createElement('details'); box.style.cssText='position:fixed;right:10px;bottom:10px;max-width:90vw;background:#0b1828;color:#e6f2ff;border:1px solid #214058;border-radius:10px;z-index:999;padding:8px';
-  const sum=document.createElement('summary'); sum.textContent='🔧 Debug';
-  const pre=document.createElement('pre'); pre.id='log'; pre.style.cssText='white-space:pre-wrap;max-height:200px;overflow:auto;margin:6px 0 0';
-  box.appendChild(sum); box.appendChild(pre); document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(box));
-  const log=(...a)=>{ try{ const el=document.getElementById('log'); if(el){ el.textContent += a.join(' ')+'\n'; } }catch{}};
-  window.addEventListener('error', e=>{ log('Error:', e.message); });
-  window.addEventListener('unhandledrejection', e=>{ log('Promise:', e.reason); });
-  window.__dbg = { log };
-})();
-const _memStore = {};
-const safeLocalStorage = {
-  getItem(k){ try{ return window.safeLocalStorage.getItem(k); }catch(e){ return _memStore[k] ?? null; } },
-  setItem(k,v){ try{ window.safeLocalStorage.setItem(k,v); }catch(e){ _memStore[k]=v; } },
-  removeItem(k){ try{ window.safeLocalStorage.removeItem(k); }catch(e){ delete _memStore[k]; } }
+(()=>{'use strict';
+const _mem={};
+const store={ get:(k)=>{try{return localStorage.getItem(k)}catch{return _mem[k]??null}},
+               set:(k,v)=>{try{localStorage.setItem(k,v)}catch{_mem[k]=v}},
+               del:(k)=>{try{localStorage.removeItem(k)}catch{delete _mem[k]}} };
+
+const ADMIN_CODE="140318";
+const PRODUCTS=[{"id": "skarb_%28funke%29", "name": "Skarb (Funke)", "price": 48.0, "cat": "batterien"}, {"id": "krawall_monster_4", "name": "Krawall Monster 4", "price": 12.0, "cat": "batterien"}, {"id": "krawall_monster_3", "name": "Krawall Monster 3", "price": 12.0, "cat": "batterien"}, {"id": "knisterfeuer_b", "name": "Knisterfeuer B", "price": 4.5, "cat": "klein"}, {"id": "vogelschreck_100_stk_%28funke%29", "name": "Vogelschreck 100 Stk (Funke)", "price": 58.0, "cat": "singles"}, {"id": "big_bang_kasjopeja_%28jorge_jw06%29", "name": "Big Bang Kasjopeja (Jorge JW06)", "price": 9.5, "cat": "batterien"}, {"id": "big_bang_wenus_%28jorge_jw08%29", "name": "Big Bang Wenus (Jorge JW08)", "price": 15.0, "cat": "batterien"}, {"id": "traca_10_meter", "name": "Traca 10 Meter", "price": 11.0, "cat": "knaller"}, {"id": "signalrakete_901_mit_stab", "name": "Signalrakete 901 mit Stab", "price": 9.0, "cat": "singles"}, {"id": "urania_%28argento_mini-serie%29", "name": "Urania (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "acryl_%28argento_mini-serie%29", "name": "Acryl (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "demonio_%28argento_mini-serie%29", "name": "Demonio (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "orchid_%28argento_mini-serie%29", "name": "Orchid (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "amandra_%28argento_mini-serie%29", "name": "Amandra (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "capri_%28argento_mini-serie%29", "name": "Capri (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "plasma_%28argento_mini-serie%29", "name": "Plasma (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "glitzergold_%28argento%29", "name": "Glitzergold (Argento)", "price": 15.0, "cat": "batterien"}, {"id": "pluc_%28iskra_line%29", "name": "Pluc (Iskra Line)", "price": 13.0, "cat": "batterien"}, {"id": "whistling_palms_%28funke%29", "name": "Whistling Palms (Funke)", "price": 80.0, "cat": "batterien"}, {"id": "screaming_chrysanthemum_%28funke%29", "name": "Screaming Chrysanthemum (Funke)", "price": 99.0, "cat": "batterien"}, {"id": "neon_kong_%28funke%29", "name": "Neon Kong (Funke)", "price": 155.0, "cat": "batterien"}, {"id": "fermata_100a_%28funke%29", "name": "Fermata 100A (Funke)", "price": 185.0, "cat": "batterien"}, {"id": "elegant_night_%28funke%29", "name": "Elegant Night (Funke)", "price": 210.0, "cat": "batterien"}, {"id": "corolla_blue_%28funke%29", "name": "Corolla Blue (Funke)", "price": 185.0, "cat": "batterien"}, {"id": "snowblind_%28funke%29", "name": "Snowblind (Funke)", "price": 185.0, "cat": "batterien"}, {"id": "kolos_50mm_%28iskra_line%29", "name": "Kolos 50mm (Iskra Line)", "price": 90.0, "cat": "mm50"}, {"id": "hydra_50mm_%28iskra_line%29", "name": "Hydra 50mm (Iskra Line)", "price": 70.0, "cat": "mm50"}, {"id": "pytw%C3%B3r_50mm_%28iskra_line%29", "name": "Pytwór 50mm (Iskra Line)", "price": 95.0, "cat": "mm50"}, {"id": "bloom_blossom_%28panda%29", "name": "Bloom Blossom (Panda)", "price": 22.0, "cat": "batterien"}, {"id": "fire_%28panda%29", "name": "Fire (Panda)", "price": 15.0, "cat": "batterien"}, {"id": "lone_wolf_%28panda%29", "name": "Lone Wolf (Panda)", "price": 29.0, "cat": "batterien"}, {"id": "leider_geil_%28hey%21%29", "name": "Leider Geil (Hey!)", "price": 66.0, "cat": "batterien"}, {"id": "petarda_set_blau", "name": "Petarda Set blau", "price": 11.0, "cat": "knaller"}, {"id": "dum_bum_5g", "name": "Dum Bum 5g", "price": 16.0, "cat": "knaller"}, {"id": "pyroshow_2000_prometelis", "name": "Pyroshow 2000 Prometelis", "price": 135.0, "cat": "verbuende"}, {"id": "pyroshow_2000_hermes", "name": "Pyroshow 2000 Hermes", "price": 130.0, "cat": "verbuende"}, {"id": "pyroshow_1000_palermo", "name": "Pyroshow 1000 Palermo", "price": 70.0, "cat": "batterien"}, {"id": "pyroshow_talos", "name": "Pyroshow Talos", "price": 60.0, "cat": "batterien"}, {"id": "pretty_in_pink", "name": "Pretty in Pink", "price": 35.0, "cat": "batterien"}, {"id": "cosmic_chicken", "name": "Cosmic Chicken", "price": 9.0, "cat": "batterien"}, {"id": "made_in_japan", "name": "Made in Japan", "price": 79.99, "cat": "batterien"}, {"id": "candy_mountain", "name": "Candy Mountain", "price": 99.0, "cat": "verbuende"}, {"id": "raptor_princess", "name": "Raptor Princess", "price": 85.0, "cat": "batterien"}, {"id": "heisenberg_%28volt%21%29", "name": "Heisenberg (VOLT!)", "price": 299.0, "cat": "verbuende"}, {"id": "brutal_buffalo", "name": "Brutal Buffalo", "price": 100.0, "cat": "verbuende"}, {"id": "cakebox_speedtrap_%28volt%21%29", "name": "Cakebox Speedtrap (VOLT!)", "price": 140.0, "cat": "verbuende"}, {"id": "cake_white_red_rebel_%28volt%21%29", "name": "Cake White Red Rebel (VOLT!)", "price": 29.0, "cat": "batterien"}, {"id": "big_balls", "name": "Big Balls", "price": 4.0, "cat": "klein"}, {"id": "megacatling", "name": "Megacatling", "price": 25.0, "cat": "singles"}, {"id": "sonora_%28el_gato%29", "name": "Sonora (El Gato)", "price": 48.0, "cat": "batterien"}, {"id": "napad_%28iskra_line%29", "name": "Napad (Iskra Line)", "price": 70.0, "cat": "batterien"}, {"id": "kameleon_%28iskra_line%29", "name": "Kameleon (Iskra Line)", "price": 40.0, "cat": "batterien"}, {"id": "berserk_%28iskra_line%29", "name": "Berserk (Iskra Line)", "price": 70.0, "cat": "batterien"}, {"id": "double_deck_red_%28xplode%29", "name": "Double Deck RED (Xplode)", "price": 35.0, "cat": "batterien"}, {"id": "double_deck_blue_%28xplode%29", "name": "Double Deck BLUE (Xplode)", "price": 35.0, "cat": "batterien"}, {"id": "double_deck_purple_%28xplode%29", "name": "Double Deck PURPLE (Xplode)", "price": 35.0, "cat": "batterien"}, {"id": "blitz_krums_16_shot_%28iskra%29", "name": "Blitz Krums 16 Shot (Iskra)", "price": 10.0, "cat": "batterien"}, {"id": "blitz_krums_25_shot_%28iskra%29", "name": "Blitz Krums 25 Shot (Iskra)", "price": 16.0, "cat": "batterien"}, {"id": "blitz_krums_50_shot_%28iskra%29", "name": "Blitz Krums 50 Shot (Iskra)", "price": 25.0, "cat": "batterien"}, {"id": "blitz_krums_100_shot_%28iskra%29", "name": "Blitz Krums 100 Shot (Iskra)", "price": 50.0, "cat": "batterien"}, {"id": "exodus_%28riakeo%29", "name": "Exodus (Riakeo)", "price": 179.99, "cat": "verbuende"}, {"id": "vengeance_%28riakeo%29", "name": "Vengeance (Riakeo)", "price": 179.99, "cat": "verbuende"}, {"id": "miami_%28riakeo%29", "name": "Miami (Riakeo)", "price": 179.99, "cat": "verbuende"}, {"id": "terremoto_1s_%28el_gato%29", "name": "Terremoto 1S (El Gato)", "price": 35.0, "cat": "batterien"}, {"id": "terremoto_especial_1s_%28el_gato%29", "name": "Terremoto Especial 1S (El Gato)", "price": 35.0, "cat": "batterien"}, {"id": "terremoto_10s_%28el_gato%29", "name": "Terremoto 10S (El Gato)", "price": 35.0, "cat": "batterien"}, {"id": "terremoto_36s_%28el_gato%29", "name": "Terremoto 36S (El Gato)", "price": 35.0, "cat": "batterien"}, {"id": "fiesta_de_colores_%28el_gato%29", "name": "Fiesta De Colores (El Gato)", "price": 160.0, "cat": "batterien"}, {"id": "fiesta_dorada_%28el_gato%29", "name": "Fiesta Dorada (El Gato)", "price": 180.0, "cat": "batterien"}, {"id": "viking_50_einzelpreis", "name": "Viking 50 Einzelpreis", "price": 9.5, "cat": "knaller"}, {"id": "viking_50_%E2%80%93_4er_pack", "name": "Viking 50 – 4er Pack", "price": 35.0, "cat": "knaller"}];
+const K={ cart:'ultra_cart_v1', links:'ultra_links_v1', custom:'ultra_custom_v1', orders:'ultra_orders_v1', admin:'ultra_admin_ok_v1' };
+
+const $=(q,r=document)=>r.querySelector(q); const $$=(q,r=document)=>Array.from(r.querySelectorAll(q));
+const fmt=(n)=>n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+const getLinks=()=>{ try{return JSON.parse(store.get(K.links))||{}}catch{return {}} };
+const setLinks=(o)=>store.set(K.links, JSON.stringify(o));
+const getCustom=()=>{ try{return JSON.parse(store.get(K.custom))||[]}catch{return []} };
+const setCustom=(a)=>store.set(K.custom, JSON.stringify(a));
+const getOrders=()=>{ try{return JSON.parse(store.get(K.orders))||{}}catch{return {}} };
+const setOrders=(o)=>store.set(K.orders, JSON.stringify(o));
+const isAdmin=()=>store.get(K.admin)==='true';
+const setAdmin=(v)=>v?store.set(K.admin,'true'):store.del(K.admin);
+const all=()=>{
+  const baseSrc = (typeof window!=='undefined' && Array.isArray(window.FB_PRODUCTS) && window.FB_PRODUCTS.length)? window.FB_PRODUCTS : PRODUCTS;
+  const base = baseSrc.map(p=>({ ...p }));
+  const merged = base.map(p=>{ const o=FB_OVERRIDES[p.id]||{}; return { ...p, price:(typeof o.price==='number'?o.price:p.price), link:o.link||p.link, img:o.img||p.img, cat:o.cat||p.cat, name:o.name||p.name }; });
+  const customs = (FB_CUSTOM.length? FB_CUSTOM : getCustom());
+  return merged.concat(customs);
 };
+const byId=(id)=>all().find(p=>p.id===id);
+let FB_OVERRIDES={};
+let FB_CUSTOM=[];
+let FB_ORDERS={};
 
-
-const ADMIN_PASSWORD = "140318";
-const PRODUCTS_BASE = [{"id": "skarb_%28funke%29", "name": "Skarb (Funke)", "price": 48.0, "cat": "batterien"}, {"id": "krawall_monster_4", "name": "Krawall Monster 4", "price": 12.0, "cat": "batterien"}, {"id": "krawall_monster_3", "name": "Krawall Monster 3", "price": 12.0, "cat": "batterien"}, {"id": "knisterfeuer_b", "name": "Knisterfeuer B", "price": 4.5, "cat": "klein"}, {"id": "vogelschreck_100_stk_%28funke%29", "name": "Vogelschreck 100 Stk (Funke)", "price": 58.0, "cat": "singles"}, {"id": "big_bang_kasjopeja_%28jorge_jw06%29", "name": "Big Bang Kasjopeja (Jorge JW06)", "price": 9.5, "cat": "batterien"}, {"id": "big_bang_wenus_%28jorge_jw08%29", "name": "Big Bang Wenus (Jorge JW08)", "price": 15.0, "cat": "batterien"}, {"id": "traca_10_meter", "name": "Traca 10 Meter", "price": 11.0, "cat": "knaller"}, {"id": "signalrakete_901_mit_stab", "name": "Signalrakete 901 mit Stab", "price": 9.0, "cat": "singles"}, {"id": "urania_%28argento_mini-serie%29", "name": "Urania (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "acryl_%28argento_mini-serie%29", "name": "Acryl (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "demonio_%28argento_mini-serie%29", "name": "Demonio (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "orchid_%28argento_mini-serie%29", "name": "Orchid (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "amandra_%28argento_mini-serie%29", "name": "Amandra (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "capri_%28argento_mini-serie%29", "name": "Capri (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "plasma_%28argento_mini-serie%29", "name": "Plasma (Argento Mini-Serie)", "price": 19.99, "cat": "serie"}, {"id": "glitzergold_%28argento%29", "name": "Glitzergold (Argento)", "price": 15.0, "cat": "batterien"}, {"id": "pluc_%28iskra_line%29", "name": "Pluc (Iskra Line)", "price": 13.0, "cat": "batterien"}, {"id": "whistling_palms_%28funke%29", "name": "Whistling Palms (Funke)", "price": 80.0, "cat": "batterien"}, {"id": "screaming_chrysanthemum_%28funke%29", "name": "Screaming Chrysanthemum (Funke)", "price": 99.0, "cat": "batterien"}, {"id": "neon_kong_%28funke%29", "name": "Neon Kong (Funke)", "price": 155.0, "cat": "batterien"}, {"id": "fermata_100a_%28funke%29", "name": "Fermata 100A (Funke)", "price": 185.0, "cat": "batterien"}, {"id": "elegant_night_%28funke%29", "name": "Elegant Night (Funke)", "price": 210.0, "cat": "batterien"}, {"id": "corolla_blue_%28funke%29", "name": "Corolla Blue (Funke)", "price": 185.0, "cat": "batterien"}, {"id": "snowblind_%28funke%29", "name": "Snowblind (Funke)", "price": 185.0, "cat": "batterien"}, {"id": "kolos_50mm_%28iskra_line%29", "name": "Kolos 50mm (Iskra Line)", "price": 90.0, "cat": "mm50"}, {"id": "hydra_50mm_%28iskra_line%29", "name": "Hydra 50mm (Iskra Line)", "price": 70.0, "cat": "mm50"}, {"id": "pytw%C3%B3r_50mm_%28iskra_line%29", "name": "Pytwór 50mm (Iskra Line)", "price": 95.0, "cat": "mm50"}, {"id": "bloom_blossom_%28panda%29", "name": "Bloom Blossom (Panda)", "price": 22.0, "cat": "batterien"}, {"id": "fire_%28panda%29", "name": "Fire (Panda)", "price": 15.0, "cat": "batterien"}, {"id": "lone_wolf_%28panda%29", "name": "Lone Wolf (Panda)", "price": 29.0, "cat": "batterien"}, {"id": "leider_geil_%28hey%21%29", "name": "Leider Geil (Hey!)", "price": 66.0, "cat": "batterien"}, {"id": "petarda_set_blau", "name": "Petarda Set blau", "price": 11.0, "cat": "knaller"}, {"id": "dum_bum_5g", "name": "Dum Bum 5g", "price": 16.0, "cat": "knaller"}, {"id": "pyroshow_2000_prometelis", "name": "Pyroshow 2000 Prometelis", "price": 135.0, "cat": "verbuende"}, {"id": "pyroshow_2000_hermes", "name": "Pyroshow 2000 Hermes", "price": 130.0, "cat": "verbuende"}, {"id": "pyroshow_1000_palermo", "name": "Pyroshow 1000 Palermo", "price": 70.0, "cat": "batterien"}, {"id": "pyroshow_talos", "name": "Pyroshow Talos", "price": 60.0, "cat": "batterien"}, {"id": "pretty_in_pink", "name": "Pretty in Pink", "price": 35.0, "cat": "batterien"}, {"id": "cosmic_chicken", "name": "Cosmic Chicken", "price": 9.0, "cat": "batterien"}, {"id": "made_in_japan", "name": "Made in Japan", "price": 79.99, "cat": "batterien"}, {"id": "candy_mountain", "name": "Candy Mountain", "price": 99.0, "cat": "verbuende"}, {"id": "raptor_princess", "name": "Raptor Princess", "price": 85.0, "cat": "batterien"}, {"id": "heisenberg_%28volt%21%29", "name": "Heisenberg (VOLT!)", "price": 299.0, "cat": "verbuende"}, {"id": "brutal_buffalo", "name": "Brutal Buffalo", "price": 100.0, "cat": "verbuende"}, {"id": "cakebox_speedtrap_%28volt%21%29", "name": "Cakebox Speedtrap (VOLT!)", "price": 140.0, "cat": "verbuende"}, {"id": "cake_white_red_rebel_%28volt%21%29", "name": "Cake White Red Rebel (VOLT!)", "price": 29.0, "cat": "batterien"}, {"id": "big_balls", "name": "Big Balls", "price": 4.0, "cat": "klein"}, {"id": "megacatling", "name": "Megacatling", "price": 25.0, "cat": "singles"}, {"id": "sonora_%28el_gato%29", "name": "Sonora (El Gato)", "price": 48.0, "cat": "batterien"}, {"id": "napad_%28iskra_line%29", "name": "Napad (Iskra Line)", "price": 70.0, "cat": "batterien"}, {"id": "kameleon_%28iskra_line%29", "name": "Kameleon (Iskra Line)", "price": 40.0, "cat": "batterien"}, {"id": "berserk_%28iskra_line%29", "name": "Berserk (Iskra Line)", "price": 70.0, "cat": "batterien"}, {"id": "double_deck_red_%28xplode%29", "name": "Double Deck RED (Xplode)", "price": 35.0, "cat": "batterien"}, {"id": "double_deck_blue_%28xplode%29", "name": "Double Deck BLUE (Xplode)", "price": 35.0, "cat": "batterien"}, {"id": "double_deck_purple_%28xplode%29", "name": "Double Deck PURPLE (Xplode)", "price": 35.0, "cat": "batterien"}, {"id": "blitz_krums_16_shot_%28iskra%29", "name": "Blitz Krums 16 Shot (Iskra)", "price": 10.0, "cat": "batterien"}, {"id": "blitz_krums_25_shot_%28iskra%29", "name": "Blitz Krums 25 Shot (Iskra)", "price": 16.0, "cat": "batterien"}, {"id": "blitz_krums_50_shot_%28iskra%29", "name": "Blitz Krums 50 Shot (Iskra)", "price": 25.0, "cat": "batterien"}, {"id": "blitz_krums_100_shot_%28iskra%29", "name": "Blitz Krums 100 Shot (Iskra)", "price": 50.0, "cat": "batterien"}, {"id": "exodus_%28riakeo%29", "name": "Exodus (Riakeo)", "price": 179.99, "cat": "verbuende"}, {"id": "vengeance_%28riakeo%29", "name": "Vengeance (Riakeo)", "price": 179.99, "cat": "verbuende"}, {"id": "miami_%28riakeo%29", "name": "Miami (Riakeo)", "price": 179.99, "cat": "verbuende"}, {"id": "terremoto_1s_%28el_gato%29", "name": "Terremoto 1S (El Gato)", "price": 35.0, "cat": "batterien"}, {"id": "terremoto_especial_1s_%28el_gato%29", "name": "Terremoto Especial 1S (El Gato)", "price": 35.0, "cat": "batterien"}, {"id": "terremoto_10s_%28el_gato%29", "name": "Terremoto 10S (El Gato)", "price": 35.0, "cat": "batterien"}, {"id": "terremoto_36s_%28el_gato%29", "name": "Terremoto 36S (El Gato)", "price": 35.0, "cat": "batterien"}, {"id": "fiesta_de_colores_%28el_gato%29", "name": "Fiesta De Colores (El Gato)", "price": 160.0, "cat": "batterien"}, {"id": "fiesta_dorada_%28el_gato%29", "name": "Fiesta Dorada (El Gato)", "price": 180.0, "cat": "batterien"}, {"id": "viking_50_einzelpreis", "name": "Viking 50 Einzelpreis", "price": 9.5, "cat": "knaller"}, {"id": "viking_50_%E2%80%93_4er_pack", "name": "Viking 50 – 4er Pack", "price": 35.0, "cat": "knaller"}];
-
-const CART_KEY='pyro_cart_v2';
-const ORDERS_KEY='pyro_orders_v2';
-const LINKS_KEY='pyro_links_v2';   // id -> url
-const CUSTOM_KEY='pyro_custom_v2'; // array of custom products {id,name,price,cat,link}
-const ADMIN_OK='pyro_admin_ok_v2';
-
-// --- helpers
-const $ = (q,root=document)=>root.querySelector(q);
-const $$ = (q,root=document)=>Array.from(root.querySelectorAll(q));
-const fmt=(n)=> (n).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
-const slug =(s)=> s.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');
-
-// storage
-const getCart=()=>{try{return JSON.parse(safeLocalStorage.getItem(CART_KEY))||{}}catch{return {}}};
-const setCart=(c)=>{safeLocalStorage.setItem(CART_KEY, JSON.stringify(c)); refreshBar();};
-const getOrders=()=>{try{return JSON.parse(safeLocalStorage.getItem(ORDERS_KEY))||{}}catch{return {}}};
-const saveOrders=(o)=>safeLocalStorage.setItem(ORDERS_KEY, JSON.stringify(o));
-const getLinks =()=>{try{return JSON.parse(safeLocalStorage.getItem(LINKS_KEY))||{}}catch{return {}}};
-const saveLinks=(o)=>safeLocalStorage.setItem(LINKS_KEY, JSON.stringify(o));
-const getCustom=()=>{try{return JSON.parse(safeLocalStorage.getItem(CUSTOM_KEY))||[]}catch{return []}};
-const saveCustom=(arr)=>safeLocalStorage.setItem(CUSTOM_KEY, JSON.stringify(arr));
-const allProducts=()=> PRODUCTS_BASE.concat(getCustom());
-const productById=(id)=> allProducts().find(p=>p.id===id);
-
-// --- render
-function renderChips(){ 
-  const cats = Array.from(new Set(allProducts().map(p=>p.cat))).sort();
-  const bar = $('.chips'); bar.innerHTML = '<div class="chip active" data-cat="alle">Alle</div>' + cats.map(c=>`<div class="chip" data-cat="${c}">${c[0].toUpperCase()+c.slice(1)}</div>`).join('');
+// ---------- RENDER ----------
+function renderChips(){ const cats=[...new Set(all().map(p=>p.cat))].sort(); const wrap=$('.chips');
+  wrap.innerHTML=['<div class="chip active" data-cat="alle">Alle</div>'].concat(cats.map(c=>`<div class="chip" data-cat="${c}">${c[0].toUpperCase()+c.slice(1)}</div>`)).join('');
+  $$('.chip').forEach(ch=>ch.addEventListener('click',()=>{ $$('.chip').forEach(x=>x.classList.remove('active')); ch.classList.add('active'); currentCat=ch.dataset.cat; applyFilter(); }));
 }
 
-function renderGrid(){
-  const grid = $('.grid');
-  grid.innerHTML = "\n    <article class=\"card\" data-name=\"skarb (funke)\" data-cat=\"batterien\" data-id=\"skarb_%28funke%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Skarb (Funke)</div>\n        <div class=\"row\">\n          <div class=\"price\">48.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"skarb_%28funke%29\">\n            <button data-action=\"add\" data-id=\"skarb_%28funke%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"krawall monster 4\" data-cat=\"batterien\" data-id=\"krawall_monster_4\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Krawall Monster 4</div>\n        <div class=\"row\">\n          <div class=\"price\">12.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"krawall_monster_4\">\n            <button data-action=\"add\" data-id=\"krawall_monster_4\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"krawall monster 3\" data-cat=\"batterien\" data-id=\"krawall_monster_3\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Krawall Monster 3</div>\n        <div class=\"row\">\n          <div class=\"price\">12.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"krawall_monster_3\">\n            <button data-action=\"add\" data-id=\"krawall_monster_3\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"knisterfeuer b\" data-cat=\"klein\" data-id=\"knisterfeuer_b\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Knisterfeuer B</div>\n        <div class=\"row\">\n          <div class=\"price\">4.50 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"knisterfeuer_b\">\n            <button data-action=\"add\" data-id=\"knisterfeuer_b\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"vogelschreck 100 stk (funke)\" data-cat=\"singles\" data-id=\"vogelschreck_100_stk_%28funke%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Vogelschreck 100 Stk (Funke)</div>\n        <div class=\"row\">\n          <div class=\"price\">58.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"vogelschreck_100_stk_%28funke%29\">\n            <button data-action=\"add\" data-id=\"vogelschreck_100_stk_%28funke%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"big bang kasjopeja (jorge jw06)\" data-cat=\"batterien\" data-id=\"big_bang_kasjopeja_%28jorge_jw06%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Big Bang Kasjopeja (Jorge JW06)</div>\n        <div class=\"row\">\n          <div class=\"price\">9.50 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"big_bang_kasjopeja_%28jorge_jw06%29\">\n            <button data-action=\"add\" data-id=\"big_bang_kasjopeja_%28jorge_jw06%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"big bang wenus (jorge jw08)\" data-cat=\"batterien\" data-id=\"big_bang_wenus_%28jorge_jw08%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Big Bang Wenus (Jorge JW08)</div>\n        <div class=\"row\">\n          <div class=\"price\">15.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"big_bang_wenus_%28jorge_jw08%29\">\n            <button data-action=\"add\" data-id=\"big_bang_wenus_%28jorge_jw08%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"traca 10 meter\" data-cat=\"knaller\" data-id=\"traca_10_meter\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Traca 10 Meter</div>\n        <div class=\"row\">\n          <div class=\"price\">11.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"traca_10_meter\">\n            <button data-action=\"add\" data-id=\"traca_10_meter\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"signalrakete 901 mit stab\" data-cat=\"singles\" data-id=\"signalrakete_901_mit_stab\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Signalrakete 901 mit Stab</div>\n        <div class=\"row\">\n          <div class=\"price\">9.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"signalrakete_901_mit_stab\">\n            <button data-action=\"add\" data-id=\"signalrakete_901_mit_stab\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"urania (argento mini-serie)\" data-cat=\"serie\" data-id=\"urania_%28argento_mini-serie%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Urania (Argento Mini-Serie)</div>\n        <div class=\"row\">\n          <div class=\"price\">19.99 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"urania_%28argento_mini-serie%29\">\n            <button data-action=\"add\" data-id=\"urania_%28argento_mini-serie%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"acryl (argento mini-serie)\" data-cat=\"serie\" data-id=\"acryl_%28argento_mini-serie%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Acryl (Argento Mini-Serie)</div>\n        <div class=\"row\">\n          <div class=\"price\">19.99 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"acryl_%28argento_mini-serie%29\">\n            <button data-action=\"add\" data-id=\"acryl_%28argento_mini-serie%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"demonio (argento mini-serie)\" data-cat=\"serie\" data-id=\"demonio_%28argento_mini-serie%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Demonio (Argento Mini-Serie)</div>\n        <div class=\"row\">\n          <div class=\"price\">19.99 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"demonio_%28argento_mini-serie%29\">\n            <button data-action=\"add\" data-id=\"demonio_%28argento_mini-serie%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"orchid (argento mini-serie)\" data-cat=\"serie\" data-id=\"orchid_%28argento_mini-serie%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Orchid (Argento Mini-Serie)</div>\n        <div class=\"row\">\n          <div class=\"price\">19.99 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"orchid_%28argento_mini-serie%29\">\n            <button data-action=\"add\" data-id=\"orchid_%28argento_mini-serie%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"amandra (argento mini-serie)\" data-cat=\"serie\" data-id=\"amandra_%28argento_mini-serie%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Amandra (Argento Mini-Serie)</div>\n        <div class=\"row\">\n          <div class=\"price\">19.99 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"amandra_%28argento_mini-serie%29\">\n            <button data-action=\"add\" data-id=\"amandra_%28argento_mini-serie%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"capri (argento mini-serie)\" data-cat=\"serie\" data-id=\"capri_%28argento_mini-serie%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Capri (Argento Mini-Serie)</div>\n        <div class=\"row\">\n          <div class=\"price\">19.99 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"capri_%28argento_mini-serie%29\">\n            <button data-action=\"add\" data-id=\"capri_%28argento_mini-serie%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"plasma (argento mini-serie)\" data-cat=\"serie\" data-id=\"plasma_%28argento_mini-serie%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Plasma (Argento Mini-Serie)</div>\n        <div class=\"row\">\n          <div class=\"price\">19.99 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"plasma_%28argento_mini-serie%29\">\n            <button data-action=\"add\" data-id=\"plasma_%28argento_mini-serie%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"glitzergold (argento)\" data-cat=\"batterien\" data-id=\"glitzergold_%28argento%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Glitzergold (Argento)</div>\n        <div class=\"row\">\n          <div class=\"price\">15.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"glitzergold_%28argento%29\">\n            <button data-action=\"add\" data-id=\"glitzergold_%28argento%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"pluc (iskra line)\" data-cat=\"batterien\" data-id=\"pluc_%28iskra_line%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Pluc (Iskra Line)</div>\n        <div class=\"row\">\n          <div class=\"price\">13.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"pluc_%28iskra_line%29\">\n            <button data-action=\"add\" data-id=\"pluc_%28iskra_line%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"whistling palms (funke)\" data-cat=\"batterien\" data-id=\"whistling_palms_%28funke%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Whistling Palms (Funke)</div>\n        <div class=\"row\">\n          <div class=\"price\">80.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"whistling_palms_%28funke%29\">\n            <button data-action=\"add\" data-id=\"whistling_palms_%28funke%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"screaming chrysanthemum (funke)\" data-cat=\"batterien\" data-id=\"screaming_chrysanthemum_%28funke%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Screaming Chrysanthemum (Funke)</div>\n        <div class=\"row\">\n          <div class=\"price\">99.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"screaming_chrysanthemum_%28funke%29\">\n            <button data-action=\"add\" data-id=\"screaming_chrysanthemum_%28funke%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"neon kong (funke)\" data-cat=\"batterien\" data-id=\"neon_kong_%28funke%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Neon Kong (Funke)</div>\n        <div class=\"row\">\n          <div class=\"price\">155.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"neon_kong_%28funke%29\">\n            <button data-action=\"add\" data-id=\"neon_kong_%28funke%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"fermata 100a (funke)\" data-cat=\"batterien\" data-id=\"fermata_100a_%28funke%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Fermata 100A (Funke)</div>\n        <div class=\"row\">\n          <div class=\"price\">185.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"fermata_100a_%28funke%29\">\n            <button data-action=\"add\" data-id=\"fermata_100a_%28funke%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"elegant night (funke)\" data-cat=\"batterien\" data-id=\"elegant_night_%28funke%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Elegant Night (Funke)</div>\n        <div class=\"row\">\n          <div class=\"price\">210.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"elegant_night_%28funke%29\">\n            <button data-action=\"add\" data-id=\"elegant_night_%28funke%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"corolla blue (funke)\" data-cat=\"batterien\" data-id=\"corolla_blue_%28funke%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Corolla Blue (Funke)</div>\n        <div class=\"row\">\n          <div class=\"price\">185.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"corolla_blue_%28funke%29\">\n            <button data-action=\"add\" data-id=\"corolla_blue_%28funke%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"snowblind (funke)\" data-cat=\"batterien\" data-id=\"snowblind_%28funke%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Snowblind (Funke)</div>\n        <div class=\"row\">\n          <div class=\"price\">185.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"snowblind_%28funke%29\">\n            <button data-action=\"add\" data-id=\"snowblind_%28funke%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"kolos 50mm (iskra line)\" data-cat=\"mm50\" data-id=\"kolos_50mm_%28iskra_line%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Kolos 50mm (Iskra Line)</div>\n        <div class=\"row\">\n          <div class=\"price\">90.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"kolos_50mm_%28iskra_line%29\">\n            <button data-action=\"add\" data-id=\"kolos_50mm_%28iskra_line%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"hydra 50mm (iskra line)\" data-cat=\"mm50\" data-id=\"hydra_50mm_%28iskra_line%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Hydra 50mm (Iskra Line)</div>\n        <div class=\"row\">\n          <div class=\"price\">70.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"hydra_50mm_%28iskra_line%29\">\n            <button data-action=\"add\" data-id=\"hydra_50mm_%28iskra_line%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"pytw\u00f3r 50mm (iskra line)\" data-cat=\"mm50\" data-id=\"pytw%C3%B3r_50mm_%28iskra_line%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Pytw\u00f3r 50mm (Iskra Line)</div>\n        <div class=\"row\">\n          <div class=\"price\">95.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"pytw%C3%B3r_50mm_%28iskra_line%29\">\n            <button data-action=\"add\" data-id=\"pytw%C3%B3r_50mm_%28iskra_line%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"bloom blossom (panda)\" data-cat=\"batterien\" data-id=\"bloom_blossom_%28panda%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Bloom Blossom (Panda)</div>\n        <div class=\"row\">\n          <div class=\"price\">22.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"bloom_blossom_%28panda%29\">\n            <button data-action=\"add\" data-id=\"bloom_blossom_%28panda%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"fire (panda)\" data-cat=\"batterien\" data-id=\"fire_%28panda%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Fire (Panda)</div>\n        <div class=\"row\">\n          <div class=\"price\">15.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"fire_%28panda%29\">\n            <button data-action=\"add\" data-id=\"fire_%28panda%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"lone wolf (panda)\" data-cat=\"batterien\" data-id=\"lone_wolf_%28panda%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Lone Wolf (Panda)</div>\n        <div class=\"row\">\n          <div class=\"price\">29.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"lone_wolf_%28panda%29\">\n            <button data-action=\"add\" data-id=\"lone_wolf_%28panda%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"leider geil (hey!)\" data-cat=\"batterien\" data-id=\"leider_geil_%28hey%21%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Leider Geil (Hey!)</div>\n        <div class=\"row\">\n          <div class=\"price\">66.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"leider_geil_%28hey%21%29\">\n            <button data-action=\"add\" data-id=\"leider_geil_%28hey%21%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"petarda set blau\" data-cat=\"knaller\" data-id=\"petarda_set_blau\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Petarda Set blau</div>\n        <div class=\"row\">\n          <div class=\"price\">11.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"petarda_set_blau\">\n            <button data-action=\"add\" data-id=\"petarda_set_blau\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"dum bum 5g\" data-cat=\"knaller\" data-id=\"dum_bum_5g\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Dum Bum 5g</div>\n        <div class=\"row\">\n          <div class=\"price\">16.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"dum_bum_5g\">\n            <button data-action=\"add\" data-id=\"dum_bum_5g\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"pyroshow 2000 prometelis\" data-cat=\"verbuende\" data-id=\"pyroshow_2000_prometelis\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Pyroshow 2000 Prometelis</div>\n        <div class=\"row\">\n          <div class=\"price\">135.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"pyroshow_2000_prometelis\">\n            <button data-action=\"add\" data-id=\"pyroshow_2000_prometelis\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"pyroshow 2000 hermes\" data-cat=\"verbuende\" data-id=\"pyroshow_2000_hermes\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Pyroshow 2000 Hermes</div>\n        <div class=\"row\">\n          <div class=\"price\">130.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"pyroshow_2000_hermes\">\n            <button data-action=\"add\" data-id=\"pyroshow_2000_hermes\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"pyroshow 1000 palermo\" data-cat=\"batterien\" data-id=\"pyroshow_1000_palermo\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Pyroshow 1000 Palermo</div>\n        <div class=\"row\">\n          <div class=\"price\">70.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"pyroshow_1000_palermo\">\n            <button data-action=\"add\" data-id=\"pyroshow_1000_palermo\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"pyroshow talos\" data-cat=\"batterien\" data-id=\"pyroshow_talos\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Pyroshow Talos</div>\n        <div class=\"row\">\n          <div class=\"price\">60.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"pyroshow_talos\">\n            <button data-action=\"add\" data-id=\"pyroshow_talos\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"pretty in pink\" data-cat=\"batterien\" data-id=\"pretty_in_pink\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Pretty in Pink</div>\n        <div class=\"row\">\n          <div class=\"price\">35.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"pretty_in_pink\">\n            <button data-action=\"add\" data-id=\"pretty_in_pink\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"cosmic chicken\" data-cat=\"batterien\" data-id=\"cosmic_chicken\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Cosmic Chicken</div>\n        <div class=\"row\">\n          <div class=\"price\">9.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"cosmic_chicken\">\n            <button data-action=\"add\" data-id=\"cosmic_chicken\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"made in japan\" data-cat=\"batterien\" data-id=\"made_in_japan\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Made in Japan</div>\n        <div class=\"row\">\n          <div class=\"price\">79.99 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"made_in_japan\">\n            <button data-action=\"add\" data-id=\"made_in_japan\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"candy mountain\" data-cat=\"verbuende\" data-id=\"candy_mountain\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Candy Mountain</div>\n        <div class=\"row\">\n          <div class=\"price\">99.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"candy_mountain\">\n            <button data-action=\"add\" data-id=\"candy_mountain\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"raptor princess\" data-cat=\"batterien\" data-id=\"raptor_princess\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Raptor Princess</div>\n        <div class=\"row\">\n          <div class=\"price\">85.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"raptor_princess\">\n            <button data-action=\"add\" data-id=\"raptor_princess\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"heisenberg (volt!)\" data-cat=\"verbuende\" data-id=\"heisenberg_%28volt%21%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Heisenberg (VOLT!)</div>\n        <div class=\"row\">\n          <div class=\"price\">299.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"heisenberg_%28volt%21%29\">\n            <button data-action=\"add\" data-id=\"heisenberg_%28volt%21%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"brutal buffalo\" data-cat=\"verbuende\" data-id=\"brutal_buffalo\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Brutal Buffalo</div>\n        <div class=\"row\">\n          <div class=\"price\">100.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"brutal_buffalo\">\n            <button data-action=\"add\" data-id=\"brutal_buffalo\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"cakebox speedtrap (volt!)\" data-cat=\"verbuende\" data-id=\"cakebox_speedtrap_%28volt%21%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Cakebox Speedtrap (VOLT!)</div>\n        <div class=\"row\">\n          <div class=\"price\">140.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"cakebox_speedtrap_%28volt%21%29\">\n            <button data-action=\"add\" data-id=\"cakebox_speedtrap_%28volt%21%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"cake white red rebel (volt!)\" data-cat=\"batterien\" data-id=\"cake_white_red_rebel_%28volt%21%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Cake White Red Rebel (VOLT!)</div>\n        <div class=\"row\">\n          <div class=\"price\">29.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"cake_white_red_rebel_%28volt%21%29\">\n            <button data-action=\"add\" data-id=\"cake_white_red_rebel_%28volt%21%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"big balls\" data-cat=\"klein\" data-id=\"big_balls\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Big Balls</div>\n        <div class=\"row\">\n          <div class=\"price\">4.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"big_balls\">\n            <button data-action=\"add\" data-id=\"big_balls\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"megacatling\" data-cat=\"singles\" data-id=\"megacatling\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Megacatling</div>\n        <div class=\"row\">\n          <div class=\"price\">25.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"megacatling\">\n            <button data-action=\"add\" data-id=\"megacatling\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"sonora (el gato)\" data-cat=\"batterien\" data-id=\"sonora_%28el_gato%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Sonora (El Gato)</div>\n        <div class=\"row\">\n          <div class=\"price\">48.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"sonora_%28el_gato%29\">\n            <button data-action=\"add\" data-id=\"sonora_%28el_gato%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"napad (iskra line)\" data-cat=\"batterien\" data-id=\"napad_%28iskra_line%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Napad (Iskra Line)</div>\n        <div class=\"row\">\n          <div class=\"price\">70.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"napad_%28iskra_line%29\">\n            <button data-action=\"add\" data-id=\"napad_%28iskra_line%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"kameleon (iskra line)\" data-cat=\"batterien\" data-id=\"kameleon_%28iskra_line%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Kameleon (Iskra Line)</div>\n        <div class=\"row\">\n          <div class=\"price\">40.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"kameleon_%28iskra_line%29\">\n            <button data-action=\"add\" data-id=\"kameleon_%28iskra_line%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"berserk (iskra line)\" data-cat=\"batterien\" data-id=\"berserk_%28iskra_line%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Berserk (Iskra Line)</div>\n        <div class=\"row\">\n          <div class=\"price\">70.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"berserk_%28iskra_line%29\">\n            <button data-action=\"add\" data-id=\"berserk_%28iskra_line%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"double deck red (xplode)\" data-cat=\"batterien\" data-id=\"double_deck_red_%28xplode%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Double Deck RED (Xplode)</div>\n        <div class=\"row\">\n          <div class=\"price\">35.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"double_deck_red_%28xplode%29\">\n            <button data-action=\"add\" data-id=\"double_deck_red_%28xplode%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"double deck blue (xplode)\" data-cat=\"batterien\" data-id=\"double_deck_blue_%28xplode%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Double Deck BLUE (Xplode)</div>\n        <div class=\"row\">\n          <div class=\"price\">35.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"double_deck_blue_%28xplode%29\">\n            <button data-action=\"add\" data-id=\"double_deck_blue_%28xplode%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"double deck purple (xplode)\" data-cat=\"batterien\" data-id=\"double_deck_purple_%28xplode%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Double Deck PURPLE (Xplode)</div>\n        <div class=\"row\">\n          <div class=\"price\">35.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"double_deck_purple_%28xplode%29\">\n            <button data-action=\"add\" data-id=\"double_deck_purple_%28xplode%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"blitz krums 16 shot (iskra)\" data-cat=\"batterien\" data-id=\"blitz_krums_16_shot_%28iskra%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Blitz Krums 16 Shot (Iskra)</div>\n        <div class=\"row\">\n          <div class=\"price\">10.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"blitz_krums_16_shot_%28iskra%29\">\n            <button data-action=\"add\" data-id=\"blitz_krums_16_shot_%28iskra%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"blitz krums 25 shot (iskra)\" data-cat=\"batterien\" data-id=\"blitz_krums_25_shot_%28iskra%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Blitz Krums 25 Shot (Iskra)</div>\n        <div class=\"row\">\n          <div class=\"price\">16.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"blitz_krums_25_shot_%28iskra%29\">\n            <button data-action=\"add\" data-id=\"blitz_krums_25_shot_%28iskra%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"blitz krums 50 shot (iskra)\" data-cat=\"batterien\" data-id=\"blitz_krums_50_shot_%28iskra%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Blitz Krums 50 Shot (Iskra)</div>\n        <div class=\"row\">\n          <div class=\"price\">25.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"blitz_krums_50_shot_%28iskra%29\">\n            <button data-action=\"add\" data-id=\"blitz_krums_50_shot_%28iskra%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"blitz krums 100 shot (iskra)\" data-cat=\"batterien\" data-id=\"blitz_krums_100_shot_%28iskra%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Blitz Krums 100 Shot (Iskra)</div>\n        <div class=\"row\">\n          <div class=\"price\">50.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"blitz_krums_100_shot_%28iskra%29\">\n            <button data-action=\"add\" data-id=\"blitz_krums_100_shot_%28iskra%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"exodus (riakeo)\" data-cat=\"verbuende\" data-id=\"exodus_%28riakeo%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Exodus (Riakeo)</div>\n        <div class=\"row\">\n          <div class=\"price\">179.99 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"exodus_%28riakeo%29\">\n            <button data-action=\"add\" data-id=\"exodus_%28riakeo%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"vengeance (riakeo)\" data-cat=\"verbuende\" data-id=\"vengeance_%28riakeo%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Vengeance (Riakeo)</div>\n        <div class=\"row\">\n          <div class=\"price\">179.99 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"vengeance_%28riakeo%29\">\n            <button data-action=\"add\" data-id=\"vengeance_%28riakeo%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"miami (riakeo)\" data-cat=\"verbuende\" data-id=\"miami_%28riakeo%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Miami (Riakeo)</div>\n        <div class=\"row\">\n          <div class=\"price\">179.99 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"miami_%28riakeo%29\">\n            <button data-action=\"add\" data-id=\"miami_%28riakeo%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"terremoto 1s (el gato)\" data-cat=\"batterien\" data-id=\"terremoto_1s_%28el_gato%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Terremoto 1S (El Gato)</div>\n        <div class=\"row\">\n          <div class=\"price\">35.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"terremoto_1s_%28el_gato%29\">\n            <button data-action=\"add\" data-id=\"terremoto_1s_%28el_gato%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"terremoto especial 1s (el gato)\" data-cat=\"batterien\" data-id=\"terremoto_especial_1s_%28el_gato%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Terremoto Especial 1S (El Gato)</div>\n        <div class=\"row\">\n          <div class=\"price\">35.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"terremoto_especial_1s_%28el_gato%29\">\n            <button data-action=\"add\" data-id=\"terremoto_especial_1s_%28el_gato%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"terremoto 10s (el gato)\" data-cat=\"batterien\" data-id=\"terremoto_10s_%28el_gato%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Terremoto 10S (El Gato)</div>\n        <div class=\"row\">\n          <div class=\"price\">35.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"terremoto_10s_%28el_gato%29\">\n            <button data-action=\"add\" data-id=\"terremoto_10s_%28el_gato%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"terremoto 36s (el gato)\" data-cat=\"batterien\" data-id=\"terremoto_36s_%28el_gato%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Terremoto 36S (El Gato)</div>\n        <div class=\"row\">\n          <div class=\"price\">35.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"terremoto_36s_%28el_gato%29\">\n            <button data-action=\"add\" data-id=\"terremoto_36s_%28el_gato%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"fiesta de colores (el gato)\" data-cat=\"batterien\" data-id=\"fiesta_de_colores_%28el_gato%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Fiesta De Colores (El Gato)</div>\n        <div class=\"row\">\n          <div class=\"price\">160.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"fiesta_de_colores_%28el_gato%29\">\n            <button data-action=\"add\" data-id=\"fiesta_de_colores_%28el_gato%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"fiesta dorada (el gato)\" data-cat=\"batterien\" data-id=\"fiesta_dorada_%28el_gato%29\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Fiesta Dorada (El Gato)</div>\n        <div class=\"row\">\n          <div class=\"price\">180.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"fiesta_dorada_%28el_gato%29\">\n            <button data-action=\"add\" data-id=\"fiesta_dorada_%28el_gato%29\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"viking 50 einzelpreis\" data-cat=\"knaller\" data-id=\"viking_50_einzelpreis\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Viking 50 Einzelpreis</div>\n        <div class=\"row\">\n          <div class=\"price\">9.50 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"viking_50_einzelpreis\">\n            <button data-action=\"add\" data-id=\"viking_50_einzelpreis\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    \n\n    <article class=\"card\" data-name=\"viking 50 \u2013 4er pack\" data-cat=\"knaller\" data-id=\"viking_50_%E2%80%93_4er_pack\">\n      <a class=\"thumb\" data-action=\"open-link\" href=\"#\" rel=\"noopener noreferrer\"><span>Click mich</span></a>\n      <div class=\"body\">\n        <div class=\"name\">Viking 50 \u2013 4er Pack</div>\n        <div class=\"row\">\n          <div class=\"price\">35.00 \u20ac</div>\n          <div class=\"ctls\">\n            <input type=\"number\" min=\"1\" value=\"1\" data-qty-for=\"viking_50_%E2%80%93_4er_pack\">\n            <button data-action=\"add\" data-id=\"viking_50_%E2%80%93_4er_pack\">In den Korb</button>\n          </div>\n        </div>\n      </div>\n    </article>\n    ";
-  applyLinks();
+function card(p){
+  return `<article class="card" data-id="${p.id}" data-name="${p.name.toLowerCase()}" data-cat="${p.cat}">
+    <a class="thumb" href="#" data-act="open"><span class="cta">Click mich</span></a>
+    <div class="name">${p.name}</div>
+    <div class="meta">
+      <div class="price">${fmt(p.price)}</div>
+      <div class="ctls">
+        <input class="qty" type="number" value="1" min="1" data-qty="${p.id}">
+        <button class="btn" data-act="add" data-id="${p.id}">In den Korb</button>
+      </div>
+    </div>
+  </article>`;
 }
 
+function renderGrid(){ const grid=$('.grid'); grid.innerHTML = all().map(card).join(''); applyLinks(); }
 function applyLinks(){
   const L=getLinks();
-  $$('.card').forEach(card=>{
-    const id=card.getAttribute('data-id');
-    const a = $('.thumb', card);
-    const url = L[id] || (getCustom().find(x=>x.id===id)?.link) || null;
-    if(url){ a.setAttribute('href', url); a.setAttribute('target','_blank'); a.classList.remove('disabled'); }
-    else{ a.setAttribute('href','#'); a.removeAttribute('target'); }
+  $$('.card').forEach(card=>{ const id=card.dataset.id; const a=card.querySelector('.thumb');
+    const p = byId(id) || {};
+    const url = (L[id] || p.link || '');
+    const img = p.img || '';
+    if(url){ a.href=url; a.target='_blank'; } else { a.href='#'; a.removeAttribute('target'); }
+    if(img){ a.classList.add('hasimg'); a.style.backgroundImage = `linear-gradient(135deg,rgba(0,0,0,.0),rgba(0,0,0,.15)),url(${img})`; } else { a.classList.remove('hasimg'); a.style.backgroundImage=''; }
   });
 }
 
-// --- filter/search
+// ---------- FILTER ----------
 let currentCat='alle';
 function applyFilter(){
-  const q = ($('#search').value||'').trim().toLowerCase();
-  $$('.card').forEach(c=>{
-    const matchText = c.getAttribute('data-name').includes(q);
-    const cat = c.getAttribute('data-cat');
-    const matchCat = (currentCat==='alle'||cat===currentCat);
-    c.style.display = (matchText && matchCat) ? '' : 'none';
-  });
+  const q=($('#q').value||'').trim().toLowerCase();
+  $$('.card').forEach(c=>{ const t=c.dataset.name.includes(q); const cat=c.dataset.cat; c.style.display=(t && (currentCat==='alle'||currentCat===cat))? '': 'none'; });
 }
 
-// --- slash menu
-const COMMANDS=[
-  {cmd:'/admin', desc:'Admin-Login'},
-  {cmd:'/codes', desc:'Gespeicherte Warenkorb-Codes'},
-  {cmd:'/reset', desc:'Alle Warenkorb-Codes löschen'}
-];
+// ---------- SLASH MENU ----------
 function showMenu(filter){
-  const menu=$('#cmdmenu'); const list = COMMANDS.filter(c=>c.cmd.startsWith(filter||''));
-  if(list.length===0){ menu.classList.remove('open'); menu.style.display='none'; menu.innerHTML=''; return; }
-  menu.innerHTML = list.map(c=>`<button data-cmd="${c.cmd}"><strong>${c.cmd}</strong><span>${c.desc}</span></button>`).join('');
-  menu.style.display='block'; menu.classList.add('open');
+  const menu=$('#menu'); if(!menu) return;
+  // Gate: Only admins may ever see the slash menu
+  if(!isAdmin()){ menu.classList.remove('open'); menu.innerHTML=''; return; }
+  const BASE=[{cmd:'/admin', desc:'Admin öffnen'}];
+  const EXTRA=[
+    {cmd:'/codes',desc:'Gespeicherte Warenkorb-Codes'},
+    {cmd:'/reset',desc:'Alle Codes löschen'},
+    {cmd:'/export',desc:'Bestellungen als CSV exportieren'},{cmd:'/seed',desc:'Basis-Produkte nach Firestore schreiben'}
+  ];
+  const COMMANDS=BASE.concat(EXTRA);
+  const q=(filter||'').toLowerCase();
+  const list=COMMANDS.filter(c=>c.cmd.startsWith(q));
+  if(!list.length){ menu.classList.remove('open'); menu.innerHTML=''; return; }
+  menu.innerHTML=list.map(c=>`<button data-cmd="${c.cmd}"><strong>${c.cmd}</strong> <span>${c.desc}</span></button>`).join('');
+  menu.classList.add('open');
+  $$('button',menu).forEach(b=>b.onclick=()=>{ execCmd(b.dataset.cmd); menu.classList.remove('open'); menu.innerHTML=''; });
 }
-function hideMenu(){ const menu=$('#cmdmenu'); menu.classList.remove('open'); menu.style.display='none'; menu.innerHTML=''; }
 
 function execCmd(v){
-  if(v==='/admin') openAdmin();
-  else if(v==='/codes') showOrders();
-  else if(v==='/reset'){ if(confirm('Alle Codes löschen?')){ safeLocalStorage.removeItem(ORDERS_KEY); alert('Gelöscht.'); } }
+  v=(v||'').trim().toLowerCase();
+  if(v==='/admin') return openAdmin();
+  if(!isAdmin()) return toast('Bitte zuerst /admin und Admin-Code eingeben.');
+  if(v==='/codes') return renderAdmin('codes');
+  if(v==='/reset'){ if(confirm('Alle Codes löschen?')){ setOrders({}); toast('Gelöscht.'); } return; }
+  if(v==='/seed'){ if(window.FB && FB.seedProducts){ FB.seedProducts(PRODUCTS).then(()=>toast('Produkte synchronisiert')); } else toast('Firebase nicht initialisiert'); return; }
+  if(v==='/export'){ exportOrdersCSV(); return; }
+  toast('Unbekannter Befehl');
 }
 
-// --- cart
-function addToCart(id,qty){
-  const qv = Math.max(1, parseInt(qty||1,10));
-  const c = getCart();
-  c[id] = (c[id]||0) + qv;
-  try{ setCart(c); }catch(e){}
-  refreshBar();
-  toast('Hinzugefügt');
-}
-function refreshBar(){
-  const c = getCart(); let items=0,sum=0;
-  for(const [id,q] of Object.entries(c)){ const p=productById(id); if(!p) continue; items+=q; sum+=p.price*q; }
-  $('#itemCount').textContent=items;
-  $('#cartTotal').textContent=sum.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-function openCart(){
-  const m=$('#cartModal'); const rows=$('#cartRows'); rows.innerHTML=''; let sum=0,count=0;
-  const c=getCart();
-  for(const [id,q] of Object.entries(c)){ const p=productById(id); if(!p) continue; sum+=p.price*q; count+=q;
-    const el=document.createElement('div'); el.className='rowline';
-    el.innerHTML = `<div><strong>${p.name}</strong><div class="hint">${fmt(p.price)}</div></div>
-                    <div>${fmt(p.price*q)} <button data-action="remove" data-id="${id}">Entfernen</button></div>`;
-    rows.appendChild(el);
-  }
-  $('#cartSum').textContent=fmt(sum); $('#cartCnt').textContent=count+' Artikel'; m.style.display='grid';
-}
+// ---------- CART ----------
+const getCart=()=>{ try{return JSON.parse(store.get(K.cart))||{}}catch{return {}} };
+const setCart=(o)=>store.set(K.cart, JSON.stringify(o));
+function refreshBar(){ const c=getCart(); let n=0,s=0; for(const [id,q] of Object.entries(c)){ const p=byId(id); if(!p) continue; n+=q; s+=p.price*q; } $('#n').textContent=n; $('#s').textContent=s.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function addToCart(id,qty=1){ const q=Math.max(1,parseInt(qty,10)||1); const c=getCart(); c[id]=(c[id]||0)+q; setCart(c); refreshBar(); toast('Hinzugefügt'); }
 function removeItem(id){ const c=getCart(); delete c[id]; setCart(c); openCart(); }
 function clearCart(){ setCart({}); openCart(); }
-
-function genCode(){
-  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s='';
-  for(let i=0;i<6;i++) s+=chars[Math.floor(Math.random()*chars.length)];
-  return s;
+function openCart(){ const rows=$('#rows'); rows.innerHTML=''; let sum=0;
+  const c=getCart();
+  for(const [id,q] of Object.entries(c)){ const p=byId(id); if(!p) continue; sum+=p.price*q;
+    const r=document.createElement('div'); r.className='row';
+    r.innerHTML = `<div><strong>${p.name}</strong><div class="hint">${fmt(p.price)} · Menge: ${q}</div></div><div>${fmt(p.price*q)} <button class="btn" data-act="rm" data-id="${id}">Entfernen</button></div>`;
+    rows.appendChild(r);
+  }
+  $('#sum').textContent=fmt(sum);
+  $('#cart').style.display='grid';
 }
+
+function genCode(){ const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<6;i++) s+=chars[Math.floor(Math.random()*chars.length)]; return s; }
 function buyNow(){
   const c=getCart(); if(Object.keys(c).length===0) return toast('Warenkorb ist leer');
-  const orders=getOrders(); if(Object.keys(orders).length>=100) return toast('Limit 100 Codes erreicht');
-  let code=genCode(); while(orders[code]) code=genCode();
-  orders[code] = { when: new Date().toISOString(), items: Object.entries(c).map(([id,qty])=>({id, qty})) };
-  saveOrders(orders); setCart({});
-  const sheet=$('#adminSheet');
-  sheet.innerHTML=`
-    <h3 class="title">✅ Bestellung gespeichert</h3>
-    <div class="hint">Dein Bestell‑Code (bitte per WhatsApp an mich senden):</div>
-    <input id="codeOut" style="width:100%;margin:8px 0;padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff" readonly value="${code}">
-    <div style="display:flex;gap:8px">
-      <button id="btnCopy">Code kopieren</button>
-      <button id="btnShare">Teilen</button>
-      <button onclick="closeAdmin()">Fertig</button>
+  const code=genCode(); const items=Object.entries(c).map(([id,qty])=>({id,qty}));
+  const sheet=$('#asheet');
+  sheet.innerHTML = `
+    <h3 class="title">🧾 Bestellung prüfen</h3>
+    <div style="display:grid;gap:8px">
+      <label>Dein Name (Pflicht): <input id="custName" placeholder="Name eingeben" style="width:100%;padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff"></label>
+      <label>Code (automatisch): <input id="custCode" readonly value="${code}" style="width:100%;padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff"></label>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="btn" id="ok">Bestätigen</button>
+      <button class="btn" id="cancel">Abbrechen</button>
     </div>`;
-  $('#adminModal').style.display='grid';
-  $('#btnCopy').onclick=()=>{ navigator.clipboard.writeText(code); toast('Code kopiert'); };
-  $('#btnShare').onclick=()=>{ const text='Mein Silvester‑Bestellcode: '+code; if(navigator.share) navigator.share({title:'Bestell‑Code',text}).catch(()=>{}); else { navigator.clipboard.writeText(code); alert('Code kopiert. In WhatsApp einfügen.'); } };
+  $('#admin').style.display='grid';
+  $('#cancel').onclick=()=>$('#admin').style.display='none';
+  $('#ok').onclick=()=>{ const name=($('#custName').value||'').trim(); if(!name) return toast('Bitte Namen eingeben.');
+    const orders=getOrders(); orders[code]={ when:new Date().toISOString(), name, items }; setOrders(orders);
+    setCart({}); refreshBar();
+    sheet.innerHTML=`<h3 class="title">✅ Bestellung gespeichert</h3><div class="hint">Danke ${name}! Dein Code: ${code}.</div><div style="margin-top:10px"><button class="btn" id="done">Fertig</button></div>`;
+    $('#done').onclick=()=>$('#admin').style.display='none';
+  };
 }
 
-// --- admin
-function isAdmin(){ return safeLocalStorage.getItem(ADMIN_OK)==='true'; }
+// ---------- EXPORT ----------
+function exportOrdersCSV(){
+  const orders=getOrders();
+  const rows=[['code','when','name','items_count','items_detail']];
+  for(const [code,o] of Object.entries(orders)){
+    const cnt=(o.items||[]).reduce((a,b)=>a+b.qty,0);
+    const detail=(o.items||[]).map(it=>`${it.id}x${it.qty}`).join('|');
+    rows.push([code,o.when||'',o.name||'',String(cnt),detail]);
+  }
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='orders_export.csv'; document.body.appendChild(a); a.click(); a.remove();
+  toast('Export erstellt');
+}
+
+// ---------- ADMIN ----------
 function openAdmin(){
+  const sheet=$('#asheet');
   if(!isAdmin()){
-    const sheet=$('#adminSheet');
     sheet.innerHTML=`
-      <h3 class="title">🔐 Admin‑Login</h3>
-      <div class="hint">Passwort eingeben, um Links, Codes und Produkte zu verwalten.</div>
-      <input id="pw" type="password" placeholder="Passwort" style="width:100%;padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff">
-      <div style="margin-top:10px;display:flex;gap:8px">
-        <button id="btnPw">Anmelden</button>
-        <button onclick="closeAdmin()">Abbrechen</button>
+      <h3 class="title">🔐 Admin-Login</h3>
+      <div class="hint">Bitte Admin-E-Mail und Admin-Code eingeben.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="emailSel" style="flex:1;min-width:220px;padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff">
+          <option value="patrick@blockpyro.de" selected>patrick@blockpyro.de</option>
+          <option value="admin@block-pyrotechnics.firebaseapp.com">admin@block-pyrotechnics.firebaseapp.com</option>
+          <option value="__other__">Andere…</option>
+        </select>
+        <input id="email" placeholder="Admin-E-Mail (frei eingeben)" style="flex:1;min-width:220px;padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff;display:none">
+        <input id="code" placeholder="Admin-Code" style="flex:1;min-width:160px;padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff">
+        <button class="btn" id="go">Weiter</button>
+        <button class="btn" id="x">Abbrechen</button>
       </div>`;
-    $('#adminModal').style.display='grid';
-    setTimeout(()=>$('#pw')?.focus(),0);
-    $('#btnPw').onclick=()=>{ const v=$('#pw').value.trim(); if(v==='140318'){ safeLocalStorage.setItem(ADMIN_OK,'true'); renderAdmin('links'); } else toast('Falsches Passwort'); };
+    $('#admin').style.display='grid';
+    $('#x').onclick=()=>$('#admin').style.display='none';
+    $('#go').onclick=()=>{ if(($('#code').value||'').trim()===ADMIN_CODE){ setAdmin(true); document.getElementById('adminBadge').style.display='inline-flex'; renderAdmin('links'); } else toast('Falscher Code'); };
     return;
   }
   renderAdmin('links');
 }
-function closeAdmin(){ $('#adminModal').style.display='none'; }
-
-function adminTabs(active){
-  const btn=(key,label)=>`<button class="tabbtn ${active===key?'active':''}" data-tab="${key}">${label}</button>`;
-  return `<div class="admintabs">${btn('links','Links')}${btn('codes','Codes')}${btn('produkte','Produkte')}<button class="logout" id="btnLogout">Logout</button></div>`;
-}
 
 function renderAdmin(tab){
-  const sheet=$('#adminSheet');
+  const s=$('#asheet');
+  const tabs=(active)=>`
+    <div class="tabs">
+      <button class="btn" data-tab="links"${active==='links'?' style="outline:2px solid #2b5676"':''}>Links</button>
+      <button class="btn" data-tab="codes"${active==='codes'?' style="outline:2px solid #2b5676"':''}>Codes</button>
+      <button class="btn" data-tab="produkte"${active==='produkte'?' style="outline:2px solid #2b5676"':''}>Produkte</button>
+      <button class="btn" data-tab="ideen"${active==='ideen'?' style="outline:2px solid #2b5676"':''}>Ideen</button>
+      <button class="btn logout" id="lo" style="margin-left:auto">Logout</button>
+    </div>`;
+
   if(tab==='links'){
     const L=getLinks();
-    const rows = allProducts().map(p=>{ const val=L[p.id]||''; return `<div class="rowline"><div style="min-width:220px"><strong>${p.name}</strong><div class='hint'>ID: ${p.id}</div></div><div style="flex:1"><input id="link-${p.id}" placeholder="https://youtube.com/..." value="${val}" style="width:100%;padding:8px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff"></div></div>`; }).join('');
-    sheet.innerHTML = adminTabs('links') + `<h3 class="title">🔗 Admin – Links pflegen</h3><div class="hint">YouTube‑Links pro Produkt (für „Click mich“).</div><div>${rows}</div><div style="margin-top:10px;display:flex;gap:8px"><button id="saveLinks">Speichern</button><button onclick="closeAdmin()">Fertig</button></div>`;
-    $('#saveLinks').onclick=()=>{ const obj=getLinks(); allProducts().forEach(p=>{ const el=$('#link-'+p.id); if(el) obj[p.id]=el.value.trim(); }); saveLinks(obj); applyLinks(); toast('Links gespeichert'); };
-  } else if(tab==='codes'){
-    const orders=getOrders(); const keys=Object.keys(orders).sort((a,b)=>orders[b].when.localeCompare(orders[a].when));
-    const content = keys.length? keys.map(k=>{ const cnt=orders[k].items.reduce((a,b)=>a+b.qty,0); const when=new Date(orders[k].when).toLocaleString('de-DE'); return `<div class="rowline"><div><strong>Code ${k}</strong><div class='hint'>${when} – ${cnt} Artikel</div></div><div><button data-action='view-code' data-code='${k}'>Ansehen</button> <button data-action='copy-code' data-code='${k}'>Teilen</button> <button data-action='del-code' data-code='${k}'>Löschen</button></div></div>`; }).join('') : '<div class="hint">Noch keine Codes.</div>';
-    sheet.innerHTML = adminTabs('codes') + `<h3 class="title">🧾 Admin – Codes</h3>` + content + `<div style="margin-top:10px"><button onclick="closeAdmin()">Fertig</button></div>`;
-  } else if(tab==='produkte'){
-    const cats = Array.from(new Set(allProducts().map(p=>p.cat))).sort();
-    const opts = cats.map(c=>`<option value="${c}">${c}</option>`).join('');
-    sheet.innerHTML = adminTabs('produkte') + `<h3 class="title">➕ Produkt hinzufügen</h3>
+    const rows=all().map(p=>`<div class="row"><div style="min-width:220px"><strong>${p.name}</strong><div class="hint">ID: ${p.id}</div></div><div style="flex:1"><input id="L-${p.id}" placeholder="https://youtube.com/..." value="${L[p.id]||''}" style="width:100%;padding:8px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff"></div></div>`).join('');
+    s.innerHTML=tabs('links')+`<h3 class="title">🔗 Admin – Links</h3><div>${rows}</div><div style="margin-top:10px;display:flex;gap:8px"><button class="btn" id="saveL">Speichern</button><button class="btn" id="closeA">Fertig</button></div>`;
+    $('#saveL').onclick=()=>{ const obj=getLinks(); all().forEach(p=>{ const el=$('#L-'+p.id); if(el) obj[p.id]=el.value.trim(); }); setLinks(obj); applyLinks(); toast('Links gespeichert'); };
+  }
+  else if(tab==='codes'){
+    const orders=getOrders(); const keys=Object.keys(orders).sort((a,b)=> (orders[b].when||'').localeCompare(orders[a].when||''));
+    const content = keys.length? keys.map(k=>{ const o=orders[k]; const cnt=(o.items||[]).reduce((a,b)=>a+b.qty,0); const when=new Date(o.when).toLocaleString('de-DE'); const name=o.name||'-'; return `<div class="row"><div><strong>Code ${k}</strong><div class="hint">${when} – ${cnt} Artikel – ${name}</div></div><div><button class="btn" data-act="delcode" data-code="${k}">Löschen</button></div></div>`; }).join('') : '<div class="hint">Noch keine Codes.</div>';
+    s.innerHTML=tabs('codes')+`<h3 class="title">🧾 Admin – Codes</h3>`+content+`<div style="margin-top:10px;display:flex;gap:8px"><button class="btn" id="export">Export CSV</button><button class="btn" id="closeA">Fertig</button></div>`;
+    $('#export').onclick=exportOrdersCSV;
+  }
+  else if(tab==='produkte'){
+    const cats=[...new Set(all().map(p=>p.cat))].sort();
+    const opts=cats.map(c=>`<option value="${c}">${c}</option>`).join('') + `<option value="__new__">➕ Neue Kategorie…</option>`;
+    const list=getCustom();
+    const rows=list.length? list.map(p=>`<div class="row"><div><strong>${p.name}</strong><div class="hint">${p.price.toFixed(2)} € – ${p.cat}</div></div><div><button class="btn" data-act="delcustom" data-id="${p.id}">Entfernen</button></div></div>`).join('') : '<div class="hint">Noch keine eigenen Produkte.</div>';
+    s.innerHTML=tabs('produkte')+`<h3 class="title">➕ Produkt hinzufügen</h3>
       <div style="display:grid;gap:8px;grid-template-columns:1fr 1fr">
         <input id="new_name" placeholder="Produktname">
-        <input id="new_price" placeholder="Preis z.B. 19.99">
+        <input id="new_price" placeholder="Preis z. B. 19.99">
         <select id="new_cat">${opts}</select>
-        <input id="new_link" placeholder="YouTube‑Link (optional)">
+        <input id="new_cat_new" placeholder="Neue Kategorie" style="display:none">
+        <input id="new_link" placeholder="YouTube-Link (optional)">
+        <input id="new_img" placeholder="Bild-Link (optional, z. B. GitHub Raw)">
       </div>
-      <div style="margin-top:10px;display:flex;gap:8px">
-        <button id="btnAdd">Hinzufügen</button>
-        <button onclick="closeAdmin()">Fertig</button>
-      </div>
+      <div style="margin-top:10px;display:flex;gap:8px"><button class="btn" id="addP">Hinzufügen</button><button class="btn" id="closeA">Fertig</button></div>
       <h3 class="title" style="margin-top:14px">🧩 Eigene Produkte</h3>
-      <div id="customList"></div>`;
-    const list = getCustom();
-    const rows = list.map(p=>`<div class="rowline"><div><strong>${p.name}</strong><div class='hint'>${p.price.toFixed(2)} € – ${p.cat}</div></div><div><button data-action='del-custom' data-id='${p.id}'>Entfernen</button></div></div>`).join('');
-    $('#customList').innerHTML = rows || '<div class="hint">Noch keine eigenen Produkte.</div>';
-    $('#btnAdd').onclick=()=>{ 
-      const name=$('#new_name').value.trim(); const price=parseFloat($('#new_price').value.trim().replace(',','.')); const cat=$('#new_cat').value; const link=$('#new_link').value.trim();
-      if(!name || !(price>=0)) return toast('Name/Preis fehlt');
-      let id=slug(name); const exists=allProducts().some(p=>p.id===id); let i=1; while(allProducts().some(p=>p.id===id)) id=slug(name)+'_'+(++i);
-      const arr=getCustom(); arr.push({id,name,price,cat,link}); saveCustom(arr); renderGrid(); applyFilter(); toast('Produkt hinzugefügt'); renderAdmin('produkte');
+      <div id="plist">${rows}</div>`;
+
+    $('#new_cat').onchange=()=>{ const v=$('#new_cat').value; $('#new_cat_new').style.display = (v==='__new__') ? '' : 'none'; };
+
+    $('#addP').onclick=()=>{
+      const name=$('#new_name').value.trim();
+      const price=parseFloat(($('#new_price').value||'').replace(',','.'));
+      let cat=$('#new_cat').value;
+      const catNew=$('#new_cat_new').value.trim();
+      const link=$('#new_link').value.trim();
+      if(!name || !(price>=0)) return toast('Name/Preis fehlt.');
+      if(cat==='__new__'){ if(!catNew) return toast('Neue Kategorie eingeben.'); cat=catNew; }
+      let id=name.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');
+      const allIds=new Set(all().map(p=>p.id)); let base=id, i=1; while(allIds.has(id)) id=base+'_'+(++i);
+      const arr=getCustom(); arr.push({id,name,price,cat,link}); setCustom(arr);
+      renderGrid(); renderChips(); applyFilter(); applyLinks();
+      renderAdmin('produkte'); toast('Produkt hinzugefügt');
     };
   }
-  // bind tabs + logout
-  $$('.tabbtn', sheet).forEach(b=>b.onclick=()=>renderAdmin(b.getAttribute('data-tab')));
-  $('#btnLogout').onclick=()=>{ safeLocalStorage.removeItem(ADMIN_OK); toast('Abgemeldet'); closeAdmin(); };
-  $('#adminModal').style.display='grid';
+
+  // Common bindings
+  
+  else if(tab==='ideen'){
+    const items = (window.FB_IDEAS||[]);
+    const rows = items.length ? items.map(d=>{
+      const when = d.when? new Date(d.when.seconds? d.when.seconds*1000 : d.when).toLocaleString('de-DE') : '';
+      const name = d.name || '-';
+      const text = (d.text||'').replace(/</g,'&lt;');
+      return `<div class="row">
+        <div><strong>${name}</strong><div class="hint">${when}</div><div>${text}</div></div>
+        <div><button class="btn" data-act="delidea" data-id="${d.id}">Löschen</button></div>
+      </div>`;
+    }).join('') : '<div class="hint">Noch keine Ideen.</div>';
+    s.innerHTML=tabs('ideen')+`<h3 class="title">💡 Ideen (live)</h3>`+rows+`<div style="margin-top:10px"><button class="btn" id="closeA">Fertig</button></div>`;
+  }
+
+  $$('.btn[data-tab]',s).forEach(b=>b.onclick=()=>renderAdmin(b.dataset.tab));
+  $('#lo').onclick=()=>{ setAdmin(false); document.getElementById('adminBadge').style.display='none'; toast('Abgemeldet'); $('#admin').style.display='none'; };
+  $('#closeA').onclick=()=>$('#admin').style.display='none';
+
+  s.addEventListener('click',(e)=>{ const b=e.target.closest('button'); if(!b) return;
+    if(b.dataset.act==='delcode'){ const code=b.dataset.code; const o=getOrders(); delete o[code]; setOrders(o); renderAdmin('codes'); }
+    if(b.dataset.act==='delcustom'){ const id=b.dataset.id; const list=getCustom().filter(x=>x.id!==id); setCustom(list); renderGrid(); renderAdmin('produkte'); applyFilter(); }
+  });
 }
 
-function showOrders(){ renderAdmin('codes'); }
+// ---------- TOAST ----------
+function toast(msg){ let t=$('#toast'); if(!t){ t=document.createElement('div'); t.id='toast'; t.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:80px;background:#0b1828;border:1px solid #214058;padding:10px 14px;border-radius:10px;z-index:99'; document.body.appendChild(t);}
+  t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',1200); }
 
-// --- toast
-function toast(msg){ let t=$('#toast'); if(!t){ t=document.createElement('div'); t.id='toast'; t.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:80px;background:#0b1828;border:1px solid #214058;padding:10px 14px;border-radius:10px;z-index:99;'; document.body.appendChild(t);}
-  t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',1400);
-}
+// ---------- BOOT ----------
+window.addEventListener('DOMContentLoaded',()=>{ try{ if(localStorage.getItem('ultra_admin_ok_v1')==='true'){ document.getElementById('adminBadge').style.display='inline-flex'; } }catch(e){}renderChips(); renderGrid(); refreshBar();
+  $('#q').addEventListener('input',()=>{ const v=$('#q').value.trim().toLowerCase(); if(isAdmin() && v.startsWith('/')){ showMenu(v); } else { $('#menu').classList.remove('open'); $('#menu').innerHTML=''; } applyFilter();});
+$('#q').addEventListener('keydown',(e)=>{ if(e.key==='Enter'){  const v=$('#q').value.trim().toLowerCase();  if(v.startsWith('/')){    if(!isAdmin() && v!=='/admin'){ toast('Bitte zuerst /admin und Admin-Code eingeben.'); return; }    execCmd(v); $('#menu').classList.remove('open'); $('#menu').innerHTML=''; $('#q').value=''; applyFilter();  } }});
 
-// --- interactions
-window.addEventListener('DOMContentLoaded', ()=>{
-  const btnAdmin = document.getElementById('btnAdmin'); if(btnAdmin){ btnAdmin.addEventListener('click', ()=>openAdmin()); }
-  const _search = document.getElementById('search'); if(_search){ _search.addEventListener('keyup',(e)=>{ if(e.key==='Enter'){ const v=_search.value.trim().toLowerCase(); if(v.startsWith('/')){ execCmd(v); document.getElementById('cmdmenu').innerHTML=''; _search.value=''; applyFilter(); } } }); }
+  $('#q').addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ const v=$('#q').value.trim().toLowerCase(); if(v.startsWith('/')){ execCmd(v); $('#menu').classList.remove('open'); $('#menu').innerHTML=''; $('#q').value=''; applyFilter(); } }});
 
-  renderChips();
-  renderGrid();
-  refreshBar();
-
-  // chip clicks
-  $$('.chip').forEach(chip=>chip.addEventListener('click',()=>{ $$('.chip').forEach(c=>c.classList.remove('active')); chip.classList.add('active'); currentCat=chip.getAttribute('data-cat'); applyFilter(); }));
-
-  // search
-  const search=$('#search');
-  search.addEventListener('input',()=>{ const v=search.value.trim().toLowerCase(); if(v.startsWith('/')) showMenu(v); else hideMenu(); applyFilter(); });
-  search.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ const v=search.value.trim().toLowerCase(); if(v.startsWith('/')){ execCmd(v); hideMenu(); search.value=''; applyFilter(); } } if(e.key==='Escape'){ hideMenu(); search.blur(); } });
-  search.addEventListener('blur',()=>setTimeout(hideMenu,120));
-
-  // grid delegated clicks
-  document.addEventListener('click',(e)=>{
-    const b = e.target.closest('button');
-    if(b && b.matches('[data-action="add"]')){ 
-      const card = e.target.closest('.card'); const id=b.getAttribute('data-id');
-      const qty = card?.querySelector('input[data-qty-for]')?.value || 1;
-      addToCart(id, qty); 
-      return;
-    }
-    if(b && b.matches('[data-action="remove"]')){ removeItem(b.getAttribute('data-id')); return; }
-    const link = e.target.closest('[data-action="open-link"]');
-    if(link){ const card=e.target.closest('.card'); const id=card?.getAttribute('data-id'); const L=getLinks(); const url=L[id] || (getCustom().find(x=>x.id===id)?.link); if(url){ link.setAttribute('href', url); } else { e.preventDefault(); toast('Kein Link hinterlegt'); } }
-    const tab = e.target.closest('[data-tab]'); if(tab) e.preventDefault();
-    const cmdbtn = e.target.closest('#cmdmenu button'); if(cmdbtn){ execCmd(cmdbtn.getAttribute('data-cmd')); hideMenu(); search.value=''; }
-    const el = e.target.closest('[data-action="view-code"]'); if(el){ const code=el.getAttribute('data-code'); const orders=getOrders(); const items=orders[code]?.items||[]; const lines = items.map(it=>{ const p=productById(it.id); return `<div class='rowline'><div>${p?.name||it.id}</div><div>${it.qty}×</div></div>`; }).join(''); $('#adminSheet').innerHTML = adminTabs('codes')+`<h3 class='title'>Code ${code}</h3>${lines||'<div class="hint">leer</div>'}`; return; }
-    const el2 = e.target.closest('[data-action="copy-code"]'); if(el2){ const code=el2.getAttribute('data-code'); navigator.clipboard.writeText(code); toast('Code kopiert'); return; }
-    const el3 = e.target.closest('[data-action="del-code"]'); if(el3){ const code=el3.getAttribute('data-code'); const o=getOrders(); delete o[code]; saveOrders(o); renderAdmin('codes'); return; }
+  document.addEventListener('click',(e)=>{ const b=e.target.closest('button');
+    if(b && b.dataset.act==='add'){ const card=e.target.closest('.card'); const qty=card?.querySelector('[data-qty]')?.value||1; addToCart(b.dataset.id, qty); return; }
+    if(b && b.dataset.act==='rm'){ removeItem(b.dataset.id); return; }
   });
 
-  // cart bar buttons
-  $('#openCart').addEventListener('click', openCart);
-  $('#buyNow').addEventListener('click', buyNow);
-  // close modals on backdrop click
+  $('#openCart').onclick=openCart;
+  $('#buy').onclick=buyNow;
   $$('.modal').forEach(m=>m.addEventListener('click',(e)=>{ if(e.target===m) m.style.display='none'; }));
-});
+  // Ideas button
+  const openIdeas=()=>{
+    const s=$('#isheet');
+    s.innerHTML = `
+      <h3 class="title">💡 Idee / Wunsch / Empfehlung</h3>
+      <div style="display:grid;gap:8px">
+        <input id="ideaName" placeholder="Dein Name (optional)" style="padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff">
+        <textarea id="ideaText" placeholder="Schreibe deine Idee..." rows="5" maxlength="1000" style="padding:10px;border-radius:8px;border:1px solid #274057;background:#0b1420;color:#e6f2ff"></textarea>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="ideaSend">Senden</button>
+        <button class="btn" id="ideaClose">Schließen</button>
+      </div>`;
+    $('#ideas').style.display='grid';
+    $('#ideaClose').onclick=()=>$('#ideas').style.display='none';
+    $('#ideaSend').onclick=async()=>{
+      const name=($('#ideaName').value||'').trim();
+      const text=($('#ideaText').value||'').trim();
+      if(!text) return toast('Bitte eine Idee eingeben.');
+      if(window.FB && FB.saveIdea){
+        const ok = await FB.saveIdea({name,text});
+        if(ok!==false){ toast('Danke! Idee gesendet.'); $('#ideas').style.display='none'; }
+        else { toast('Senden fehlgeschlagen.'); }
+      } else { toast('Firebase nicht initialisiert.'); }
+    };
+  };
+  $('#btnIdeas').onclick=openIdeas;
 
-  </script>
+});
+})();
+</script>
+
+<script>
+// --- Hard override: hide slash menu for non-admins ---
+(function(){
+  const $=(q,r=document)=>r.querySelector(q);
+  const isAdmin=()=>{ try{return localStorage.getItem('ultra_admin_ok_v1')==='true'}catch(e){return false} };
+  const killMenu=()=>{ const m=$('#menu'); if(m){ m.classList.remove('open'); m.innerHTML=''; } };
+
+  // Wrap showMenu
+  const prevShow=window.showMenu;
+  window.showMenu=function(filter){
+    if(!isAdmin()){ killMenu(); return; }
+    if(typeof prevShow==='function'){ prevShow(filter); }
+  };
+
+  // Input guard (capture phase): if non-admin & startsWith('/'), never show menu
+  const q=$('#q');
+  if(q){
+    q.addEventListener('input', function(){
+      if(!isAdmin()){
+        const v=(q.value||'').trim().toLowerCase();
+        if(v.startsWith('/')) killMenu();
+      }
+    }, true);
+  }
+
+  // Exec guard: only /admin pre-login
+  const prevExec=window.execCmd;
+  window.execCmd=function(v){
+    v=(v||'').trim().toLowerCase();
+    if(!isAdmin() && v!=='/admin'){ alert('Bitte zuerst /admin und Admin-Code eingeben.'); killMenu(); return; }
+    if(typeof prevExec==='function') prevExec(v);
+  };
+})();
+</script>
+
+
+<script id="ULTRA_LOGOUT_ON_LOAD">
+try{ localStorage.removeItem('ultra_admin_ok_v1'); }catch(e){}
+</script>
+
+
+<!-- Firebase realtime sync -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, collection, onSnapshot, query, orderBy, deleteDoc, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDWDrVw28pl9TayEq5FlsjHFxMK99P2d74",
+    authDomain: "block-pyrotechnics.firebaseapp.com",
+    projectId: "block-pyrotechnics",
+    storageBucket: "block-pyrotechnics.firebasestorage.app",
+    messagingSenderId: "578672617755",
+    appId: "1:578672617755:web:2c46bfd14ba35799f40bbe",
+    measurementId: "G-3QLL181155"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  // Multiple admins supported: login UI collects the admin email
+
+  let unsubOrders=null; let unsubIdeas=null;
+  window.FB = {
+    app, db, auth,
+    signInWithCred: async (email, code) => {
+      try { await signInWithEmailAndPassword(auth, email, String(code)); return true; }
+      catch(e){ console.warn('Auth failed', e); return false; }
+    },
+    signOut: async () => { try{ await signOut(auth);}catch(e){} },
+    bulkSaveOverrides: async (rows) => {
+      for(const r of rows){
+        const data = {}; data.link = r.link||\"\"; data.img = r.img||\"\";
+        if(typeof r.price === 'number' && !Number.isNaN(r.price)) data.price=r.price; else data.price=null;
+        await setDoc(doc(db,'overrides', r.id), data, { merge: true });
+      }
+    },
+    addCustom: async (p) => setDoc(doc(db,'customProducts', p.id), p, {merge:true}),
+    deleteCustom: async (id) => deleteDoc(doc(db,'customProducts', id)),
+    saveOrder: async (code, order) => setDoc(doc(db,'orders', code), {...order, when: serverTimestamp()}, {merge:false}),
+    saveIdea: async ({name,text}) => { try{ const ref = await addDoc(collection(db,'ideas'), {name:name||'', text, when: serverTimestamp()}); return ref.id; } catch(e){ console.warn(e); return false; } },
+    seedProducts: async (base) => { for(const p of base){ const id=p.id||p.name; await setDoc(doc(db,'products', id), p, {merge:true}); } }
+  };
+
+  onSnapshot(collection(db,'overrides'), (snap)=>{
+    const o={}; snap.forEach(d=> o[d.id]=d.data());
+    window.FB_OVERRIDES = o;
+    if(window.renderGrid){ renderGrid(); applyLinks?.(); applyFilter?.(); }
+  });
+    onSnapshot(collection(db,'products'), (snap)=>{
+    const list=[]; snap.forEach(d=>{ const data=d.data(); list.push({id: d.id, ...data}); });
+    window.FB_PRODUCTS = list; if(window.renderGrid){ renderGrid(); applyLinks?.(); applyFilter?.(); }
+  });
+onSnapshot(collection(db,'customProducts'), (snap)=>{
+    const list=[]; snap.forEach(d=> list.push(d.data()));
+    window.FB_CUSTOM = list;
+    if(window.renderGrid){ renderGrid(); applyLinks?.(); applyFilter?.(); }
+  });
+  // orders subscription will be bound on auth change
+  onAuthStateChanged(auth, (user)=>{
+    console.log('Auth state:', user? user.email : 'signed out');
+    try{ if(unsubOrders){unsubOrders();unsubOrders=null;} }catch(e){}
+    if(user){ 
+      unsubOrders = onSnapshot(query(collection(db,'orders'), orderBy('when','desc')), (snap)=>{
+        const o={}; snap.forEach(d=> o[d.id]=d.data()); window.FB_ORDERS=o; });
+      unsubIdeas = onSnapshot(query(collection(db,'ideas'), orderBy('when','desc')), (snap)=>{
+        const items=[]; snap.forEach(d=> items.push({id:d.id, ...d.data()})); window.FB_IDEAS=items; if(window.renderAdmin) { /* refresh if on tab */ }
+      });
+    }
+  });
+</script>
+
 </body>
 </html>
