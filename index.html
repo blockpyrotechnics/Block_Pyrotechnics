@@ -1193,4 +1193,32 @@ ensureFirebase().then(()=>{ startRealtimeProducts(); startRealtimeOrders(); });
 
 })();
 
+
+/* ==== v3.5.7: Hide 'Bearbeiten' on catalog cards (only show YouTube & Warenkorb) ==== */
+(function(){
+  if(window.__bp_v357__) return; window.__bp_v357__=true;
+  function hideEditButtons(){
+    try{
+      document.querySelectorAll('#grid .btn, #grid button').forEach(b=>{
+        const t = (b.textContent||'').trim().toLowerCase();
+        if(t === 'bearbeiten'){ b.remove(); }
+      });
+    }catch(e){ console.warn('hideEditButtons failed', e); }
+  }
+  if(typeof window.render === 'function'){
+    const __orig = window.render;
+    window.render = function(){ __orig(); hideEditButtons(); };
+  }
+  // Re-apply after Suche/Filter/Resize etc.
+  document.addEventListener('input', (e)=>{ if((e.target||{}).id === 'search'){ setTimeout(hideEditButtons, 0); } }, true);
+  document.addEventListener('click', (e)=>{
+    const t = e.target;
+    if(!t) return;
+    // nach Kategorie-Klicks o.ä. neu anwenden
+    setTimeout(hideEditButtons, 0);
+  }, true);
+  // Initial
+  document.addEventListener('DOMContentLoaded', ()=> setTimeout(hideEditButtons, 0));
+})();
+
 </script></body></html>
