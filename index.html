@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="de">
 <head>
@@ -109,9 +108,8 @@ footer{opacity:.75;text-align:center;padding:20px}
 .codeRow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
 .notice{margin-top:10px;font-size:12px;opacity:.8}
 
-/* v3.5.2 admin tweaks: scroll + close button */
+/* ==== FINAL v3.6.0 tweaks ==== */
 .dialog{max-height:90vh; overflow:auto;}
-/* Ensure admin content can scroll on small screens */
 .adminLayout{min-height:auto;}
 </style>
 </head>
@@ -592,348 +590,68 @@ loadLocalOrders();
 loadCart(); updateBadge(); renderCart(); setSource("Lokal");
 ensureFirebase().then(()=>{ startRealtimeProducts(); startRealtimeOrders(); });
 
-/* ==== v3.5.2: Admin Orders Editing & Close Button ==== */
+/* ==== FINAL v3.6.0 consolidated fixes ==== */
 (function(){
-  // Safe query helper
-  const $ = (sel)=>document.querySelector(sel);
+  if(window.__bp_final_v360__) return; window.__bp_final_v360__=true;
 
-  // Close button for admin dialog
-  const closeAdminModal = ()=>{ const m=$('#adminModal'); if(m) m.style.display='none'; };
+  // --- Helpers ---
+  const $ = (s)=>document.querySelector(s);
+  const fmtEUR = (n)=> new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(Number(n||0));
+
+  // --- Admin close button ---
   document.addEventListener('click', (ev)=>{
-    const t = ev.target;
-    if(t && t.id === 'adminClose'){ ev.preventDefault(); closeAdminModal(); }
+    const t = ev.target; if(!(t instanceof HTMLElement)) return;
+    if(t.id === 'adminClose'){ ev.preventDefault(); const m=$('#adminModal'); if(m) m.style.display='none'; }
   }, true);
 
-  // Minimal openOrder implementation (in case missing)
-  if(typeof window.openOrder !== 'function'){
-    window.openOrder = function(o){ try{ state.selectedId = o?.id || state.selectedId; renderPanel(); }catch(e){} };
-  }
-
-  // Recalculate order totals
-  window.recalcOrderTotals = function(o){
-    let sub=0, save=0, qty=0;
-    for(const it of (o.items||[])){
-      const fp = Number(it.final||0), op = Number(it.price||0), q = Number(it.qty||0);
-      sub += fp * q; save += Math.max(0, (op - fp)) * q; qty += q;
-    }
-    o.totals = {sub, save, qty};
-    return o.totals;
-  };
-
-  // Persist order to Cloud (if available) + Local
-  window.persistOrder = async function(o){
-    try{
-      if(window.fb && fb.db && o.cloudId){
-        const data = { items:o.items||[], totals:o.totals||{}, updatedAt: (fb.serverTimestamp ? fb.serverTimestamp() : Date.now()) };
-        if(fb.updateDoc && fb.doc){ await fb.updateDoc(fb.doc(fb.db, "orders", o.cloudId), data); }
-      }
-    }catch(e){ console.warn("Cloud persist failed", e); }
-    try{ saveLocalOrders && saveLocalOrders(); }catch{}
-    try{ sideRender && sideRender(); renderOrderDetail && renderOrderDetail(); }catch{}
-  };
-
-  // Find order by id
-  function getSelOrder(){ return (state.orders||[]).find(x=>x.id===state.selectedId); }
-
-  // Change quantity of an item in selected order
-  window.changeOrderQty = async function(itemId, delta){
-    const o = getSelOrder(); if(!o) return;
-    const it = (o.items||[]).find(x=>x.id===itemId); if(!it) return;
-    it.qty = Math.max(0, (Number(it.qty)||0)+Number(delta||0));
-    if(it.qty === 0){ o.items = o.items.filter(x=>x.id!==itemId); }
-    recalcOrderTotals(o); await persistOrder(o);
-  };
-
-  // Remove item completely
-  window.removeOrderItem = async function(itemId){
-    const o = getSelOrder(); if(!o) return;
-    o.items = (o.items||[]).filter(x=>x.id!==itemId);
-    recalcOrderTotals(o); await persistOrder(o);
-  };
-
-  // Add item by product name (fuzzy) or id
-  window.addItemToOrder = async function(queryNameOrId, qty){
-    const o = getSelOrder(); if(!o) return;
-    const q = (queryNameOrId||'').toString().trim().toLowerCase();
-    if(!q) return alert('Bitte Artikelname auswählen.');
-    const prod = (state.products||[]).find(p => (p.id||'').toLowerCase()===q || (p.name||'').toLowerCase()===q);
-    if(!prod) return alert('Kein passender Artikel gefunden.');
-    const id = prod.id || (prod.name||'').toLowerCase().replace(/\s+/g,'-');
-    const exists = (o.items||[]).find(x=>x.id===id);
-    const {price:orig, d, final} = price(prod);
-    if(exists){ exists.qty += Math.max(1, Number(qty||1)); exists.price = orig; exists.final = final; exists.name = prod.name; exists.image = prod.image; }
-    else{
-      (o.items = o.items||[]).push({ id, name: prod.name, price: orig, final, image: prod.image||'', qty: Math.max(1, Number(qty||1)) });
-    }
-    recalcOrderTotals(o); await persistOrder(o);
-  };
-
-  // Delete entire order by id (local + cloud if possible)
-  window.deleteOrderById = async function(orderId){
-    const idx = (state.orders||[]).findIndex(x=>x.id===orderId);
-    if(idx<0) return;
-    const o = state.orders[idx];
-    // Try cloud delete or mark cancelled
-    try{
-      if(window.fb && fb.db && o.cloudId){
-        if(fb.deleteDoc && fb.doc){ await fb.deleteDoc(fb.doc(fb.db, "orders", o.cloudId)); }
-        else if(fb.updateDoc && fb.doc){ await fb.updateDoc(fb.doc(fb.db, "orders", o.cloudId), { status: "gelöscht" }); }
-      }
-    }catch(e){ console.warn("Cloud delete/mark failed", e); }
-    state.orders.splice(idx,1);
-    try{ saveLocalOrders && saveLocalOrders(); }catch{}
-    // Reset selection if needed
-    if(state.selectedId===orderId) state.selectedId = (state.orders[0]?.id)||null;
-    try{ sideRender && sideRender(); renderPanel && renderPanel(); }catch{}
-    toast && toast("Bestellung gelöscht");
-  };
-
-  // Patch sideRender to add delete icon for orders list
-  try{
-    const originalSideRender = sideRender;
-    window.sideRender = function(){
-      originalSideRender();
-      if(state.tab==="orders"){
-        const listEl = document.getElementById("sideList");
-        if(!listEl) return;
-        // add tiny delete icons to each row
-        listEl.querySelectorAll('.sideItem').forEach(row=>{
-          if(row.querySelector('.delOrderIcon')) return;
-          const btn = document.createElement('button');
-          btn.className = 'btn glossy icon delOrderIcon';
-          btn.style.marginLeft = '6px';
-          btn.style.height = '32px';
-          btn.style.padding = '4px 8px';
-          btn.title = 'Bestellung löschen';
-          btn.textContent = '🗑';
-          btn.addEventListener('click', (ev)=>{
-            ev.stopPropagation();
-            const code = row.textContent.trim();
-            if(confirm('Diese Bestellung wirklich löschen?')){ 
-              const active = state.orders.find(o => (o.code||'') && code.includes(o.code));
-              deleteOrderById(active?.id || state.selectedId);
-            }
-          });
-          row.appendChild(btn);
-        });
-      }
-    };
-  }catch(e){ console.warn("sideRender patch failed", e); }
-
-  // Enhance renderOrderDetail to include editing controls
-  try{
-    const originalRenderOrderDetail = renderOrderDetail;
-    window.renderOrderDetail = function(){
-      originalRenderOrderDetail();
-      const wrap = document.getElementById('orderDetail');
-      const o = (state.orders||[]).find(x=>x.id===state.selectedId);
-      if(!wrap || !o) return;
-
-      // Add editing UI: qty controls + remove buttons
-      wrap.querySelectorAll('.orderItem').forEach(row=>{
-        if(row.querySelector('.ordQty')) return; // already enhanced
-        const mid = row.children[1];
-        const idMatch = (mid && mid.textContent) ? (mid.textContent) : '';
-        const nameEl = mid ? mid.querySelector('div:first-child') : null;
-        // We rely on dataset via sum of structure; safer: add buttons referencing item by index order.
-      });
-
-      // Rebuild list with controls
-      wrap.innerHTML = '';
-      const hdr = document.createElement('div');
-      const totals = o.totals || {sub:0, save:0, qty:0};
-      hdr.className='orderSummary';
-      hdr.innerHTML = `<span class="badge">${o.code||""}</span>
-                       <strong>${(o.name||"Unbekannt")}</strong>
-                       <span>${new Date(o.createdAt||Date.now()).toLocaleString('de-DE')}</span>
-                       <span>${totals.qty} Artikel · ${new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(totals.sub)}</span>`;
-      wrap.appendChild(hdr);
-
-      const tools = document.createElement('div');
-      tools.className='toolbar';
-      tools.innerHTML = `
-        <div class="left">
-          <input id="addSearch" list="prodList" placeholder="Artikelname suchen…" class="btn" style="min-width:240px;background:#0f141d;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;">
-          <datalist id="prodList">${(state.products||[]).map(p=>`<option value="${(p.id||'').toString()}">${(p.name||'')}</option>`).join('')}</datalist>
-          <input id="addQty" type="number" min="1" value="1" style="width:80px;background:#0f141d;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;color:inherit">
-          <button class="btn glossy" id="addItemBtn">Hinzufügen</button>
-        </div>
-        <div class="right">
-          <button class="btn glossy" id="markNew2">Als neu</button>
-          <button class="btn glossy" id="markInb2">In Bearbeitung</button>
-          <button class="btn glossy" id="markDone2">Abgeschlossen</button>
-          <button class="btn glossy" id="deleteOrderBtn" style="border-color:rgba(255,77,77,.35);color:#ffdede">Bestellung löschen</button>
-        </div>
-      `;
-      wrap.appendChild(tools);
-
-      const list = document.createElement('div');
-      list.className='orderItems';
-      (o.items||[]).forEach(it=>{
-        const line = document.createElement('div'); line.className='orderItem';
-        const img = document.createElement('img'); img.src = it.image||''; line.appendChild(img);
-        const mid = document.createElement('div');
-        mid.innerHTML = `<div style="font-weight:600">${it.name||''}</div>
-                         <div style="opacity:.8;font-size:12px">${it.qty||0} × ${new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(it.final||0)}</div>`;
-        line.appendChild(mid);
-        const right = document.createElement('div');
-        right.style.display='flex'; right.style.alignItems='center'; right.style.gap='6px';
-        const minus = document.createElement('button'); minus.className='btn glossy icon ordQty'; minus.textContent='−'; minus.title='Menge verringern';
-        minus.onclick = ()=>changeOrderQty(it.id, -1);
-        const val = document.createElement('span'); val.textContent = String(it.qty||0);
-        const plus = document.createElement('button'); plus.className='btn glossy icon ordQty'; plus.textContent='+'; plus.title='Menge erhöhen';
-        plus.onclick = ()=>changeOrderQty(it.id, 1);
-        const del = document.createElement('button'); del.className='btn glossy icon'; del.textContent='🗑'; del.title='Artikel entfernen';
-        del.onclick = ()=>removeOrderItem(it.id);
-        right.append(minus, val, plus, del);
-        line.appendChild(right);
-        list.appendChild(line);
-      });
-      wrap.appendChild(list);
-
-      // Wire tools
-      const mark = (s)=>()=>updateOrderStatus && updateOrderStatus(s);
-      $('#markNew2')?.addEventListener('click', mark('neu'));
-      $('#markInb2')?.addEventListener('click', mark('in_bearbeitung'));
-      $('#markDone2')?.addEventListener('click', mark('abgeschlossen'));
-      $('#addItemBtn')?.addEventListener('click', ()=>{
-        const v = ($('#addSearch')?.value||'').trim();
-        const q = Number(($('#addQty')?.value||'1'));
-        addItemToOrder(v, q);
-      });
-      $('#deleteOrderBtn')?.addEventListener('click', ()=>{
-        if(confirm('Diese Bestellung wirklich löschen?')) deleteOrderById(o.id);
-      });
-    };
-  }catch(e){ console.warn("renderOrderDetail patch failed", e); }
-
-})();
-
-
-/* ==== v3.5.2a: Fix toolbar buttons in Products (fallback + helpers) ==== */
-(function(){
-  // Only add once
-  if(window.__bp_toolbar_fix__) return; window.__bp_toolbar_fix__=true;
-
-  async function seedCloudFromLocal(){
-    try{
-      const ok = await (window.ensureFirebase ? ensureFirebase() : false);
-      if(!(ok && window.fb && fb.db && fb.setDoc && fb.doc && fb.collection)){
-        alert("Cloud ist nicht aktiv. Bitte Firebase prüfen.");
-        return;
-      }
-      const col = fb.collection(fb.db, "products");
-      for(const p of (state.products||[])){
-        const id = p.id || (p.name||"").toLowerCase().replace(/\s+/g,'-').slice(0,80) || String(Date.now());
-        const data = {
-          name:p.name||"", desc:p.desc||"", price:Number(p.price||0),
-          discount:Number(p.discount||0), image:p.image||"", youtube:p.youtube||"",
-          category:p.category||"", badge:p.badge||"", updatedAt: (fb.serverTimestamp ? fb.serverTimestamp() : Date.now())
-        };
-        try{ await fb.setDoc(fb.doc(col, id), data, { merge:true }); }catch(e){ console.warn("Seed failed for", id, e); }
-      }
-      toast && toast("Cloud befüllt (Produkte).");
-    }catch(e){ console.warn(e); alert("Fehler beim Cloud-Befüllen."); }
-  }
-  window.seedCloudFromLocal = window.seedCloudFromLocal || seedCloudFromLocal;
-
-  async function deleteCurrent(){
-    const id = state.editingId || state.selectedId;
-    if(!id) return alert("Kein Produkt ausgewählt.");
-    if(!confirm("Dieses Produkt wirklich löschen?")) return;
-    // Local entfernen
-    state.products = (state.products||[]).filter(p=>p.id!==id);
-    try{
-      // Cloud: vorsichtig löschen, falls vorhanden
-      if(window.ensureFirebase && await ensureFirebase()){
-        if(window.fb && fb.db && fb.deleteDoc && fb.doc){
-          await fb.deleteDoc(fb.doc(fb.db, "products", id));
-        }
-      }
-    }catch(e){ console.warn("Cloud delete product fail", e); }
-    try{ localStorage && localStorage.setItem && localStorage.setItem(LS_PRODUCTS, JSON.stringify(state.products)); }catch{}
-    // UI refresh
-    try{ render(); sideRender && sideRender(); setTab && setTab('products'); }catch(e){ console.warn(e); }
-    toast && toast("Produkt gelöscht.");
-  }
-  window.deleteCurrent = window.deleteCurrent || deleteCurrent;
-
-  // Delegated clicks as fallback, in case direct .onclick binding didn't attach
-  document.addEventListener('click', (ev)=>{
-    const t = ev.target;
-    if(!(t instanceof HTMLElement)) return;
-    const id = t.id;
-    if(!id) return;
-
-    // Only if we're in products tab (to avoid conflicts)
-    if(window.state && state.tab === "products"){
-      if(id === 'cloudSeedBtn'){ ev.preventDefault(); return window.seedCloudFromLocal(); }
-      if(id === 'exportBtn'){
-        ev.preventDefault();
-        try{
-          const data = JSON.stringify(state.products||[], null, 2);
-          const blob = new Blob([data], {type:'application/json'});
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a'); a.href=url; a.download='block_pyrotechnics_products.json';
-          document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-        }catch(e){ console.warn(e); alert('Export fehlgeschlagen.'); }
-        return;
-      }
-      if(id === 'clearBtn'){
-        ev.preventDefault();
-        if(confirm("Lokale Produktdaten wirklich löschen?")){
-          try{ localStorage.removeItem(LS_PRODUCTS); }catch{}
-          state.products=[]; try{ render(); sideRender && sideRender(); }catch{}
-          toast && toast("Lokale Produkte gelöscht.");
-        }
-        return;
-      }
-      if(id === 'newBtn'){ ev.preventDefault(); return (window.newProduct && newProduct()); }
-      if(id === 'deleteBtn'){ ev.preventDefault(); return (window.deleteCurrent && deleteCurrent()); }
-      if(id === 'logoutBtn'){ ev.preventDefault(); return (window.doLogout && doLogout()); }
-      if(id === 'saveBtn'){ ev.preventDefault(); return (window.saveProductFromForm && saveProductFromForm()); }
-    }
-  }, true);
-})();
-
-
-/* ==== v3.5.4: Robust Cloud-Befüllen + sichtbare Löschen-Buttons in 'Bestellungen' ==== */
-(function(){
-  if(window.__bp_v354__) return; window.__bp_v354__ = true;
-
+  // --- Firebase ensure (robust) ---
   async function ensureCloud(){
-    // Versuche zuerst das bestehende ensureFirebase()
     try{
       if(typeof ensureFirebase === 'function'){
         const ok = await ensureFirebase();
         if(ok && window.fb && fb.db) return true;
       }
-    }catch(e){ console.warn("ensureFirebase check error", e); }
-
-    // Fallback: selbst initialisieren, falls nötig
+    }catch(e){ console.warn("ensureFirebase failed", e); }
     try{
       if(!(window.fb && fb.db)){
-        const [{initializeApp}, firestoreMod, storageMod, authMod] = await Promise.all([
+        const [{initializeApp},firestoreMod,storageMod,authMod] = await Promise.all([
           import('https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js'),
           import('https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js'),
           import('https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js'),
           import('https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js'),
         ]);
+        // Expect FIREBASE_CONFIG present in original file
         const app = initializeApp(FIREBASE_CONFIG);
         const db = firestoreMod.getFirestore(app);
         const storage = storageMod.getStorage(app);
         const auth = authMod.getAuth(app);
-        window.fb = { ...firestoreMod, ...storageMod, ...authMod, db, storage, auth };
+        window.fb = {...firestoreMod, ...storageMod, ...authMod, db, storage, auth};
       }
       return !!(window.fb && fb.db);
     }catch(e){ console.warn("ensureCloud fallback failed", e); return false; }
   }
 
-  // Ersetze/überschreibe seedCloudFromLocal mit robuster Version
+  // --- Auto anonymous auth (for Admin-Code + Save) ---
+  async function autoAuth(){
+    try{
+      const ok = await ensureCloud(); if(!ok) return false;
+      if(!(window.fb && fb.auth)) return false;
+      if(!fb.auth.currentUser && fb.signInAnonymously){
+        try{ await fb.signInAnonymously(fb.auth); }catch(e){ console.warn("signInAnonymously failed", e); }
+      }
+      return !!fb.auth.currentUser;
+    }catch(e){ console.warn("autoAuth error", e); return false; }
+  }
+  document.addEventListener('click', (ev)=>{
+    const t = ev.target;
+    if(t && t.id === 'codeLogin'){ setTimeout(()=>autoAuth(),0); }
+    if(t && t.id === 'saveBtn'){ autoAuth(); } // non-blocking
+  }, true);
+
+  // --- Seed Cloud from Local products (robust) ---
   window.seedCloudFromLocal = async function(){
     const ok = await ensureCloud();
     if(!ok){ alert("Cloud ist nicht aktiv. Bitte Firebase prüfen."); return; }
-
     try{
       const col = fb.collection(fb.db, "products");
       let count = 0;
@@ -946,81 +664,47 @@ ensureFirebase().then(()=>{ startRealtimeProducts(); startRealtimeOrders(); });
           updatedAt: (fb.serverTimestamp ? fb.serverTimestamp() : Date.now())
         };
         try{
-          if(fb.setDoc && fb.doc){
-            await fb.setDoc(fb.doc(col, id), data, { merge:true });
-          } else if (fb.addDoc){
-            await fb.addDoc(col, { __clientId:id, ...data });
-          } else {
-            throw new Error("Weder setDoc noch addDoc verfügbar");
-          }
+          if(fb.setDoc && fb.doc){ await fb.setDoc(fb.doc(col,id), data, {merge:true}); }
+          else if(fb.addDoc){ await fb.addDoc(col, {__clientId:id, ...data}); }
           count++;
-        }catch(e){ console.warn("Cloud Seed Fehler bei:", id, e); }
+        }catch(e){ console.warn("Seed fail", id, e); }
       }
-      toast && toast(`Cloud befüllt: ${count} Produkte aktualisiert.`);
+      if(window.toast) toast(`Cloud befüllt: ${count} Produkte.`);
     }catch(e){ console.warn(e); alert("Fehler beim Cloud-Befüllen."); }
   };
 
-  // Sichtbare 'Bestellung löschen' Buttons im Reiter 'Bestellungen'
-  function ensureOrderToolbarButtons(){
-    try{
-      if(state.tab !== "orders") return;
-      const panel = document.getElementById("panelContent"); if(!panel) return;
-      const tb = panel.querySelector(".toolbar");
-      let right = tb ? tb.querySelector(".right") : null;
-      if(tb && !right){ right = document.createElement("div"); right.className = "right"; tb.appendChild(right); }
-      if(right && !right.querySelector("#deleteOrderBtnTop")){
-        const del = document.createElement("button");
-        del.id = "deleteOrderBtnTop";
-        del.className = "btn glossy";
-        del.style.borderColor = "rgba(255,77,77,.35)";
-        del.style.color = "#ffdede";
-        del.textContent = "Bestellung löschen";
-        del.onclick = ()=>{
-          const o = (state.orders||[]).find(x=>x.id===state.selectedId);
-          if(o && confirm("Diese Bestellung wirklich löschen?")){
-            if(typeof deleteOrderById === "function"){ deleteOrderById(o.id); }
-          }
-        };
-        right.appendChild(del);
+  // --- Fallback for side toolbar buttons in Products tab ---
+  document.addEventListener('click', (ev)=>{
+    const t = ev.target; if(!(t instanceof HTMLElement)) return;
+    if(state && state.tab === "products"){
+      const id = t.id;
+      if(id === 'cloudSeedBtn'){ ev.preventDefault(); return window.seedCloudFromLocal(); }
+      if(id === 'exportBtn'){ ev.preventDefault();
+        try{
+          const data = JSON.stringify(state.products||[], null, 2);
+          const blob = new Blob([data], {type:'application/json'});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a'); a.href=url; a.download='block_pyrotechnics_products.json';
+          document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        }catch(e){ console.warn(e); alert('Export fehlgeschlagen.'); }
+        return;
       }
-    }catch(e){ console.warn("ensureOrderToolbarButtons:", e); }
-  }
-
-  // Hooke in renderPanel ein, damit Buttons immer gesetzt werden
-  if(typeof window.renderPanel === "function"){
-    const __orig = window.renderPanel;
-    window.renderPanel = function(){ __orig(); ensureOrderToolbarButtons(); };
-  }
-
-  // Forciere sichtbare Papierkorb-Icons in der Orders-Liste links
-  const style = document.createElement("style");
-  style.textContent = `
-    .sideItem{ display:flex; align-items:center; }
-    .sideItem .delOrderIcon{ margin-left:auto; }
-  `;
-  document.head.appendChild(style);
-
-})();
-
-
-/* ==== v3.5.5: Force editable UI for Orders (±/🗑 + Add + Delete Order) ==== */
-(function(){
-  if(window.__bp_v355__) return; window.__bp_v355__=true;
-
-  const fmtEUR = (n)=> new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(Number(n||0));
-
-  function getSelOrder(){ return (state.orders||[]).find(x=>x.id===state.selectedId); }
-
-  async function persistOrder(o){
-    try{
-      if(window.fb && fb.db && o?.cloudId){
-        const data = { items:o.items||[], totals:o.totals||{}, updatedAt: (fb.serverTimestamp ? fb.serverTimestamp() : Date.now()) };
-        if(fb.updateDoc && fb.doc){ await fb.updateDoc(fb.doc(fb.db, "orders", o.cloudId), data); }
+      if(id === 'clearBtn'){ ev.preventDefault();
+        if(confirm("Lokale Produktdaten wirklich löschen?")){
+          try{ localStorage.removeItem(LS_PRODUCTS); }catch{}
+          state.products=[]; try{ render(); sideRender && sideRender(); }catch{}
+          if(window.toast) toast("Lokale Produkte gelöscht.");
+        }
+        return;
       }
-    }catch(e){ console.warn("persistOrder failed", e); }
-    try{ saveLocalOrders && saveLocalOrders(); }catch{}
-  }
+      if(id === 'newBtn'){ ev.preventDefault(); return (window.newProduct && newProduct()); }
+      if(id === 'deleteBtn'){ ev.preventDefault(); return (window.deleteCurrent && deleteCurrent()); }
+      if(id === 'logoutBtn'){ ev.preventDefault(); return (window.doLogout && doLogout()); }
+      if(id === 'saveBtn'){ ev.preventDefault(); return (window.saveProductFromForm && saveProductFromForm()); }
+    }
+  }, true);
 
+  // --- Orders editing: totals & persistence ---
   function recalc(o){
     let sub=0, save=0, qty=0;
     for(const it of (o.items||[])){
@@ -1029,12 +713,41 @@ ensureFirebase().then(()=>{ startRealtimeProducts(); startRealtimeOrders(); });
     }
     o.totals = {sub, save, qty};
   }
+  async function persistOrder(o){
+    try{
+      const ok = await ensureCloud();
+      if(ok && window.fb && fb.db && o?.cloudId && fb.updateDoc && fb.doc){
+        const data = { items:o.items||[], totals:o.totals||{}, updatedAt: (fb.serverTimestamp ? fb.serverTimestamp() : Date.now()) };
+        await fb.updateDoc(fb.doc(fb.db,"orders",o.cloudId), data);
+      }
+    }catch(e){ console.warn("persistOrder cloud failed", e); }
+    try{ saveLocalOrders && saveLocalOrders(); }catch{}
+  }
+  async function deleteOrderByIdHard(orderId){
+    const idx = (state.orders||[]).findIndex(x=>x.id===orderId);
+    if(idx<0) return;
+    const o = state.orders[idx];
+    try{
+      const ok = await ensureCloud();
+      if(ok && window.fb && fb.db && o.cloudId){
+        if(fb.deleteDoc && fb.doc){ await fb.deleteDoc(fb.doc(fb.db,"orders",o.cloudId)); }
+        else if(fb.updateDoc && fb.doc){ await fb.updateDoc(fb.doc(fb.db,"orders",o.cloudId), {status:"gelöscht"}); }
+      }
+    }catch(e){ console.warn("cloud delete fail", e); }
+    state.orders.splice(idx,1);
+    try{ saveLocalOrders && saveLocalOrders(); }catch{}
+    if(state.selectedId===orderId) state.selectedId = (state.orders[0]?.id)||null;
+    try{ sideRender && sideRender(); renderPanel && renderPanel(); }catch{}
+    if(window.toast) toast("Bestellung gelöscht");
+  }
+  window.deleteOrderById = window.deleteOrderById || deleteOrderByIdHard;
 
+  // --- Build editable order UI (sticky) ---
   window.__buildEditableOrderUI = function(){
     try{
       if(state.tab!=="orders") return;
       const wrap = document.getElementById('orderDetail'); if(!wrap) return;
-      const o = getSelOrder(); wrap.innerHTML = "";
+      const o = (state.orders||[]).find(x=>x.id===state.selectedId); wrap.innerHTML="";
       if(!o){ wrap.innerHTML='<div style="opacity:.7">Keine Bestellung ausgewählt.</div>'; return; }
 
       recalc(o);
@@ -1047,7 +760,7 @@ ensureFirebase().then(()=>{ startRealtimeProducts(); startRealtimeOrders(); });
                        <span>${(o.totals?.qty||0)} Artikel · ${fmtEUR(o.totals?.sub||0)}</span>`;
       wrap.appendChild(hdr);
 
-      // Tools
+      // Tools (Add + Delete Order)
       const tools = document.createElement('div'); tools.className='toolbar';
       tools.innerHTML = `
         <div class="left">
@@ -1057,6 +770,9 @@ ensureFirebase().then(()=>{ startRealtimeProducts(); startRealtimeOrders(); });
           <button class="btn glossy" id="addItemBtn">Hinzufügen</button>
         </div>
         <div class="right">
+          <button class="btn glossy" id="markNew2">Als neu</button>
+          <button class="btn glossy" id="markInb2">In Bearbeitung</button>
+          <button class="btn glossy" id="markDone2">Abgeschlossen</button>
           <button class="btn glossy" id="deleteOrderBtnStrong" style="border-color:rgba(255,77,77,.35);color:#ffdede">Bestellung löschen</button>
         </div>
       `;
@@ -1086,10 +802,15 @@ ensureFirebase().then(()=>{ startRealtimeProducts(); startRealtimeOrders(); });
       });
       wrap.appendChild(list);
 
-      // Wire controls
-      wrap.querySelector('#addItemBtn')?.addEventListener('click', async ()=>{
-        const v = (wrap.querySelector('#addSearch')?.value||'').trim().toLowerCase();
-        const q = Math.max(1, Number(wrap.querySelector('#addQty')?.value||1));
+      // Wire tools
+      const mark = (s)=>async()=>{ if(typeof updateOrderStatus==='function'){ await updateOrderStatus(s);} window.__buildEditableOrderUI(); };
+      $('#markNew2')?.addEventListener('click', mark('neu'));
+      $('#markInb2')?.addEventListener('click', mark('in_bearbeitung'));
+      $('#markDone2')?.addEventListener('click', mark('abgeschlossen'));
+
+      $('#addItemBtn')?.addEventListener('click', async ()=>{
+        const v = ($('#addSearch')?.value||'').trim().toLowerCase();
+        const q = Math.max(1, Number($('#addQty')?.value||1));
         const prod = (state.products||[]).find(p=> (p.id||'').toLowerCase()===v || (p.name||'').toLowerCase()===v);
         if(!prod){ alert("Kein passender Artikel gefunden."); return; }
         const id = prod.id || (prod.name||'').toLowerCase().replace(/\s+/g,'-');
@@ -1100,103 +821,70 @@ ensureFirebase().then(()=>{ startRealtimeProducts(); startRealtimeOrders(); });
         recalc(o); await persistOrder(o); window.__buildEditableOrderUI(); sideRender && sideRender();
       });
 
-      wrap.querySelector('#deleteOrderBtnStrong')?.addEventListener('click', ()=>{
-        if(confirm("Diese Bestellung wirklich löschen?")){
-          if(typeof deleteOrderById === "function") deleteOrderById(o.id);
-        }
+      $('#deleteOrderBtnStrong')?.addEventListener('click', ()=>{
+        if(confirm("Diese Bestellung wirklich löschen?")) deleteOrderById(o.id);
       });
 
     }catch(e){ console.warn("__buildEditableOrderUI failed", e); }
   };
 
-  // Hook into renderPanel and orders status handlers to rebuild UI
+  // Hard override renderOrderDetail to be sticky
+  window.renderOrderDetail = function(){ try{ window.__buildEditableOrderUI(); }catch(e){ console.warn(e); } };
+
+  // Hook into renderPanel so orders UI is rebuilt
   if(typeof window.renderPanel === "function"){
-    const __origRenderPanel = window.renderPanel;
-    window.renderPanel = function(){ __origRenderPanel(); if(state.tab==="orders") setTimeout(()=>window.__buildEditableOrderUI(),0); };
+    const _rp = window.renderPanel;
+    window.renderPanel = function(){ _rp(); if(state.tab==="orders"){ setTimeout(()=>window.__buildEditableOrderUI(),0);} };
   }
-  document.addEventListener('click', (ev)=>{
-    const t = ev.target;
-    if(!(t instanceof HTMLElement)) return;
-    const ids = new Set(['refreshOrders','markNew','markInb','markDone']);
-    if(ids.has(t.id)){ setTimeout(()=>window.__buildEditableOrderUI(),0); }
-  }, true);
-})();
 
-
-/* ==== v3.5.6: Sticky Orders-UI (hard override + observer) ==== */
-(function(){
-  if(window.__bp_v356__) return; window.__bp_v356__=true;
-
-  // Build UI (reuse from v3.5.5 if present)
-  if(typeof window.__buildEditableOrderUI !== "function"){
-    console.warn("v3.5.6 expects __buildEditableOrderUI from v3.5.5; building minimal fallback");
-    window.__buildEditableOrderUI = function(){
-      const wrap = document.getElementById('orderDetail'); if(!wrap) return;
-      wrap.innerHTML = '<div style="opacity:.7">Keine Bestellung ausgewählt.</div>';
+  // Add delete icons on side list rows for orders
+  try{
+    const originalSideRender = sideRender;
+    window.sideRender = function(){
+      originalSideRender();
+      if(state.tab==="orders"){
+        const listEl = document.getElementById("sideList");
+        if(!listEl) return;
+        listEl.querySelectorAll('.sideItem').forEach(row=>{
+          if(row.querySelector('.delOrderIcon')) return;
+          const btn = document.createElement('button');
+          btn.className = 'btn glossy icon delOrderIcon';
+          btn.style.marginLeft = '6px';
+          btn.style.height = '32px';
+          btn.style.padding = '4px 8px';
+          btn.title = 'Bestellung löschen';
+          btn.textContent = '🗑';
+          btn.addEventListener('click', (ev)=>{
+            ev.stopPropagation();
+            const active = state.orders.find(o => (o.code||'') && row.textContent.includes(o.code));
+            if(confirm('Diese Bestellung wirklich löschen?')){ deleteOrderById(active?.id || state.selectedId); }
+          });
+          row.appendChild(btn);
+        });
+      }
     };
-  }
+  }catch(e){ console.warn("sideRender patch failed", e); }
 
-  // Hard override renderOrderDetail => always show our editable UI
-  const prev = window.renderOrderDetail;
-  window.__orig_renderOrderDetail = prev;
-  window.renderOrderDetail = function(){
-    try{
-      // DO NOT call original anymore to avoid wiping our controls
-      // (previous versions did: originalRenderOrderDetail(); then custom UI)
-      // Just build our UI:
-      window.__buildEditableOrderUI();
-    }catch(e){ console.warn("renderOrderDetail override failed", e); }
-  };
-
-  // If updateOrderStatus exists, keep original behaviour but rely on our renderOrderDetail
-  if(typeof window.updateOrderStatus === "function"){
-    const _upd = window.updateOrderStatus;
-    window.updateOrderStatus = async function(status){
-      try{ await _upd(status); }catch(e){ console.warn("updateOrderStatus error", e); }
-      try{ window.__buildEditableOrderUI(); }catch{}
-    };
-  }
-
-  // Observer: if something wipes the orderDetail area, rebuild
-  const target = ()=>document.getElementById('orderDetail');
+  // Mutation observer to keep the orders UI present
   const ensureSticky = function(){
-    const el = target(); if(!el) return;
+    const el = document.getElementById('orderDetail'); if(!el) return;
     if(el.__stickyObserver) return;
     const obs = new MutationObserver(()=>{
       if(state.tab!=="orders") return;
-      // If our strong delete button is missing or content got cleared, rebuild
       const hasControls = !!el.querySelector('#deleteOrderBtnStrong') || !!el.querySelector('#addItemBtn');
-      if(!hasControls || el.childElementCount===0){
-        window.__buildEditableOrderUI();
-      }
+      if(!hasControls || el.childElementCount===0){ window.__buildEditableOrderUI(); }
     });
     obs.observe(el, {childList:true, subtree:true});
     el.__stickyObserver = obs;
   };
-
-  // Install sticky observer whenever panel renders
-  const rp = window.renderPanel;
-  if(typeof rp === "function"){
-    const _rp = rp;
-    window.renderPanel = function(){ _rp(); if(state.tab==="orders"){ setTimeout(()=>{ window.__buildEditableOrderUI(); ensureSticky(); }, 0); } };
-  } else {
-    // Fallback: try on load
-    document.addEventListener('DOMContentLoaded', ()=>{ if(state?.tab==="orders"){ setTimeout(()=>{ window.__buildEditableOrderUI(); ensureSticky(); }, 0); } });
-  }
-
-  // Also when clicking status buttons or refresh
   document.addEventListener('click', (ev)=>{
     const t = ev.target; if(!(t instanceof HTMLElement)) return;
     const ids = new Set(['refreshOrders','markNew','markInb','markDone']);
     if(ids.has(t.id)){ setTimeout(()=>{ window.__buildEditableOrderUI(); ensureSticky(); }, 0); }
   }, true);
+  document.addEventListener('DOMContentLoaded', ()=> setTimeout(()=>{ if(state?.tab==="orders"){ window.__buildEditableOrderUI(); ensureSticky(); }}, 0));
 
-})();
-
-
-/* ==== v3.5.7: Hide 'Bearbeiten' on catalog cards (only show YouTube & Warenkorb) ==== */
-(function(){
-  if(window.__bp_v357__) return; window.__bp_v357__=true;
+  // --- Hide "Bearbeiten" on product cards (keep only YouTube + Warenkorb) ---
   function hideEditButtons(){
     try{
       document.querySelectorAll('#grid .btn, #grid button').forEach(b=>{
@@ -1206,19 +894,11 @@ ensureFirebase().then(()=>{ startRealtimeProducts(); startRealtimeOrders(); });
     }catch(e){ console.warn('hideEditButtons failed', e); }
   }
   if(typeof window.render === 'function'){
-    const __orig = window.render;
-    window.render = function(){ __orig(); hideEditButtons(); };
+    const __origRender = window.render;
+    window.render = function(){ __origRender(); hideEditButtons(); };
   }
-  // Re-apply after Suche/Filter/Resize etc.
-  document.addEventListener('input', (e)=>{ if((e.target||{}).id === 'search'){ setTimeout(hideEditButtons, 0); } }, true);
-  document.addEventListener('click', (e)=>{
-    const t = e.target;
-    if(!t) return;
-    // nach Kategorie-Klicks o.ä. neu anwenden
-    setTimeout(hideEditButtons, 0);
-  }, true);
-  // Initial
-  document.addEventListener('DOMContentLoaded', ()=> setTimeout(hideEditButtons, 0));
-})();
+  document.addEventListener('input', (e)=>{ if((e.target||{}).id === 'search'){ setTimeout(hideEditButtons,0);} }, true);
+  document.addEventListener('click', ()=> setTimeout(hideEditButtons,0), true);
 
+})();
 </script></body></html>
