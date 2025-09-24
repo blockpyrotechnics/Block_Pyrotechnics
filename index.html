@@ -343,7 +343,7 @@ function renderPanel(){
       <div class="help" style="margin-top:8px">Klicke links in der Liste auf ein Produkt, um es hier direkt zu bearbeiten.</div>
     `;
     // re-bind product panel handlers
-    document.getElementById("cloudSeedBtn").onclick = syncLocalProductsToCloud;
+    document.getElementById("cloudSeedBtn").onclick = seedCloudFromLocal;
     document.getElementById("exportBtn").onclick = ()=>{ const data=JSON.stringify(state.products,null,2); const url=URL.createObjectURL(new Blob([data],{type:"application/json"})); const a=document.createElement("a"); a.href=url; a.download="block_pyrotechnics_products.json"; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); };
     document.getElementById("clearBtn").onclick = ()=>{ if(confirm("Alle Produkte im lokalen Speicher löschen?")){ localStorage.removeItem(LS_PRODUCTS); state.products=[]; render(); sideRender(); } };
     document.getElementById("newBtn").onclick = newProduct;
@@ -386,6 +386,7 @@ function renderPanel(){
           <div class="input"><label>Code</label><input id="ordCode" type="text" value="${o.code||""}"></div>
         </div>
         <div class="orderItems" id="ordItems"></div>
+        <div class="toolbar" style="margin-top:10px;justify-content:flex-end"><button class="btn glossy" id="ordDeleteBtn" style="border-color:rgba(255,77,77,.35);color:#ffdede">Bestellung löschen</button><button class="btn glossy primary" id="ordSaveBtn2">Speichern</button></div>
         <div class="sumRow">
           <div>Artikel: <strong id="ordQty">0</strong></div>
           <div>Summe: <strong id="ordSum">0,00 €</strong></div>
@@ -393,6 +394,24 @@ function renderPanel(){
         ` : `<div style="opacity:.7">Bitte links eine Bestellung auswählen.</div>`}
       </div>
     `;
+    const delBtn=document.getElementById("ordDeleteBtn");
+    if(delBtn){ delBtn.onclick = async ()=>{
+      const o = state.orders.find(x=>x.id===state.selectedId);
+      if(!o){ return alert("Keine Bestellung gewählt."); }
+      if(!confirm("Bestellung wirklich löschen?")) return;
+      try{
+        if(o.cloudId && fb && fb.db){ await fb.deleteDoc(fb.doc(fb.db,"orders", o.cloudId)); }
+      }catch(e){ console.warn("Cloud-Löschfehler:", e); }
+      // immer lokal entfernen
+      state.orders = (state.orders||[]).filter(x=>x.id!==o.id);
+      try{ saveLocalOrders(); }catch{}
+      state.selectedId = null;
+      sideRender(); renderPanel();
+      toast("Bestellung gelöscht.");
+    }; }
+    const saveBtn2=document.getElementById("ordSaveBtn2");
+    if(saveBtn2){ saveBtn2.onclick = saveOrderFromForm; }
+
     document.getElementById("refreshOrders").onclick = ()=> sideRender();
     document.getElementById("markNew").onclick = ()=> updateOrderStatus("neu");
     document.getElementById("markInb").onclick = ()=> updateOrderStatus("in_bearbeitung");
@@ -613,37 +632,31 @@ async function syncLocalProductsToCloud(){
   const ok = await ensureFirebase(); if(!ok) { toast("Firebase init fehlgeschlagen."); return; }
   if(!fb.auth?.currentUser){ toast("Bitte zuerst anmelden."); return; }
   try{
-    // Load local list and de-duplicate by normalized name
     let list = [];
     try{ list = JSON.parse(localStorage.getItem(LS_PRODUCTS)||"[]"); }catch{ list = []; }
-    const norm = s => (s||"").trim().toLowerCase();
     const now = fb.serverTimestamp();
     for(const p of list){
-      const name = (p.name||"").trim();
-      if(!name) continue;
+      const name = (p.name||"").trim(); if(!name) continue;
       const price = Number(p.price||0);
       const discount = Number(p.discount||0) || 0;
       const image = p.image||"";
       const youtube = p.youtube||"";
-      // Try to find by name in cloud
       const q = fb.query(fb.collection(fb.db,"products"), fb.where("name","==",name), fb.limit(1));
       const snap = await fb.getDocs(q);
       if(!snap.empty){
-        const docRef = snap.docs[0].ref;
-        await fb.updateDoc(docRef, { name, price, discount, image, youtube });
+        await fb.updateDoc(snap.docs[0].ref, { name, price, discount, image, youtube });
       } else {
         await fb.addDoc(fb.collection(fb.db,"products"), { name, price, discount, image, youtube, createdAt: now });
       }
     }
     toast("Auto‑Sync: Produkte mit Cloud abgeglichen.");
-    startRealtimeProducts(); // refresh source badge + UI
+    startRealtimeProducts();
   }catch(e){
-    console.warn("AutoSync Fehler:", e);
-    toast("Auto‑Sync fehlgeschlagen. Siehe Konsole.");
+    console.warn("AutoSync Fehler:", e); toast("Auto‑Sync fehlgeschlagen. Siehe Konsole.");
   }
 }
-// Fallback: falls der Cloud-Button keine Funktion gebunden hat
-if(!window.seedCloudFromLocal){ window.seedCloudFromLocal = syncLocalProductsToCloud; }
+// Fallback: Cloud-Button auf Sync routen, falls keine Handler definiert
+window.seedCloudFromLocal = syncLocalProductsToCloud;
 
 /* ---------- Wiring ---------- */
 document.getElementById("adminBtn").addEventListener("click",()=>{
@@ -674,7 +687,7 @@ document.getElementById("cancelCheckout").onclick = closeCheckout;
 document.getElementById("submitOrder").onclick = submitOrder;
 
 document.getElementById("year").textContent = new Date().getFullYear();
-loadLocalProducts(); seedDemoIfEmpty(); render();
+loadLocalProducts(); render();
 loadLocalOrders();
 loadCart(); updateBadge(); renderCart(); setSource("Lokal");
 ensureFirebase().then(()=>{ startRealtimeProducts(); startRealtimeOrders(); });
