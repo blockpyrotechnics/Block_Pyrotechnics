@@ -980,4 +980,64 @@ ensureFirebase().then(()=>{ startRealtimeProducts(); startRealtimeOrders(); });
 
 })();
 
+
+/* ==== v3.6.2: Hardwire SAVE (capture) + fallback saveProductFromForm + z-index/pointer-fix ==== */
+(function(){
+  if(window.__bp_v362__) return; window.__bp_v362__=true;
+
+  // Ensure admin modal has top z-index and pointer-events enabled
+  const style = document.createElement('style');
+  style.textContent = `
+    #adminModal{ z-index: 99999 !important; pointer-events:auto !important; }
+    #adminModal .dialog{ z-index: 100000 !important; pointer-events:auto !important; }
+    #panelContent .btn, #panelContent button{ pointer-events:auto !important; }
+  `;
+  document.head.appendChild(style);
+
+  // Capture-level handler: any click on #saveBtn will trigger save, regardless of other listeners
+  document.addEventListener('click', function(ev){
+    const el = ev.target && (ev.target.id === 'saveBtn' ? ev.target : ev.target.closest && ev.target.closest('#saveBtn'));
+    if(!el) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    if(typeof window.saveProductFromForm === 'function'){
+      try{ window.saveProductFromForm(); }catch(e){ console.warn('saveProductFromForm error', e); }
+    } else {
+      try{ __fallbackSaveProduct(); }catch(e){ console.warn('fallback save error', e); }
+    }
+  }, true);
+
+  // Also support Ctrl+S inside Admin modal
+  document.addEventListener('keydown', (e)=>{
+    const inAdmin = !!document.getElementById('adminPanel') && document.getElementById('adminPanel').style.display !== 'none';
+    if(inAdmin && (e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')){
+      e.preventDefault();
+      if(typeof window.saveProductFromForm === 'function') window.saveProductFromForm();
+      else try{ __fallbackSaveProduct(); }catch{}
+    }
+  });
+
+  // Minimal fallback save (only used if original saveProductFromForm missing)
+  function __fallbackSaveProduct(){
+    const get = (id)=>document.getElementById(id);
+    const id = (get('pId')?.value || '').trim() || (get('pName')?.value || '').trim().toLowerCase().replace(/\s+/g,'-').slice(0,80);
+    if(!id){ alert('Bitte Artikelnamen eingeben.'); return; }
+    const prod = (state.products||[]).find(p=>p.id===id) || {id};
+    prod.name = get('pName')?.value || prod.name || '';
+    prod.price = Number(get('pPrice')?.value||0);
+    prod.discount = Number(get('pDiscount')?.value||0);
+    prod.image = get('pImage')?.value || prod.image || '';
+    prod.youtube = get('pYouTube')?.value || prod.youtube || '';
+    prod.category = get('pCategory')?.value || prod.category || '';
+    prod.badge = get('pBadge')?.value || prod.badge || '';
+
+    const idx = (state.products||[]).findIndex(p=>p.id===id);
+    if(idx>=0) state.products[idx] = prod; else state.products.push(prod);
+
+    try{ localStorage.setItem(LS_PRODUCTS, JSON.stringify(state.products)); }catch{}
+    if(window.toast) toast('Gespeichert (lokal).');
+    try{ render(); sideRender && sideRender(); }catch{}
+  }
+
+})();
 </script></body></html>
