@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="de">
 <head>
@@ -901,4 +902,82 @@ ensureFirebase().then(()=>{ startRealtimeProducts(); startRealtimeOrders(); });
   document.addEventListener('click', ()=> setTimeout(hideEditButtons,0), true);
 
 })();
+
+/* ==== v3.6.1: Robust Products-Toolbar Binding (bind after each render & via observer) ==== */
+(function(){
+  if(window.__bp_v361__) return; window.__bp_v361__=true;
+
+  function bindProductsToolbar(){
+    try{
+      if(!window.state || state.tab !== 'products') return;
+      const ids = ['cloudSeedBtn','exportBtn','clearBtn','newBtn','deleteBtn','logoutBtn','saveBtn'];
+      const el = document.getElementById('panelContent');
+      if(!el) return;
+      ids.forEach(id=>{
+        const btn = el.querySelector('#'+id);
+        if(!btn) return;
+        if(btn.dataset.bound === '1') return;
+        btn.dataset.bound = '1';
+        if(id==='cloudSeedBtn') btn.onclick = (e)=>{ e.preventDefault(); window.seedCloudFromLocal && seedCloudFromLocal(); };
+        if(id==='exportBtn') btn.onclick = (e)=>{
+          e.preventDefault();
+          try{
+            const data = JSON.stringify(state.products||[], null, 2);
+            const blob = new Blob([data], {type:'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href=url; a.download='block_pyrotechnics_products.json';
+            document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+          }catch(err){ console.warn(err); alert('Export fehlgeschlagen.'); }
+        };
+        if(id==='clearBtn') btn.onclick = (e)=>{
+          e.preventDefault();
+          if(confirm("Lokale Produktdaten wirklich löschen?")){
+            try{ localStorage.removeItem(LS_PRODUCTS); }catch{}
+            state.products=[]; try{ render(); sideRender && sideRender(); }catch{}
+            window.toast && toast("Lokale Produkte gelöscht.");
+          }
+        };
+        if(id==='newBtn') btn.onclick = (e)=>{ e.preventDefault(); window.newProduct && newProduct(); };
+        if(id==='deleteBtn') btn.onclick = (e)=>{ e.preventDefault(); window.deleteCurrent && deleteCurrent(); };
+        if(id==='logoutBtn') btn.onclick = (e)=>{ e.preventDefault(); window.doLogout && doLogout(); };
+        if(id==='saveBtn') btn.onclick = (e)=>{ e.preventDefault(); window.saveProductFromForm && saveProductFromForm(); };
+      });
+    }catch(e){ console.warn("bindProductsToolbar failed", e); }
+  }
+
+  // Wrap renderPanel to bind after each render
+  if(typeof window.renderPanel === 'function'){
+    const _rp = window.renderPanel;
+    window.renderPanel = function(){ _rp(); bindProductsToolbar(); };
+  }
+
+  // When Admin opens or tab switches, rebind
+  document.addEventListener('click', (ev)=>{
+    const t = ev.target;
+    if(!(t instanceof HTMLElement)) return;
+    if(t.matches('.segBtn')){ setTimeout(bindProductsToolbar, 0); }
+    if(t.id === 'adminBtn'){ setTimeout(bindProductsToolbar, 50); }
+  }, true);
+
+  // Observe panel content changes
+  const panel = ()=>document.getElementById('panelContent');
+  const ensureObserver = function(){
+    const p = panel(); if(!p) return;
+    if(p.__tbObs) return;
+    const obs = new MutationObserver(()=>bindProductsToolbar());
+    obs.observe(p, {childList:true, subtree:true});
+    p.__tbObs = obs;
+  };
+  document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(()=>{ bindProductsToolbar(); ensureObserver(); }, 0); });
+
+  // Safety: ensure buttons accept clicks
+  const style = document.createElement('style');
+  style.textContent = `.toolbar .btn{pointer-events:auto !important;}`;
+  document.head.appendChild(style);
+
+  // Initial bind (in case panel already present)
+  setTimeout(()=>{ bindProductsToolbar(); ensureObserver(); }, 100);
+
+})();
+
 </script></body></html>
