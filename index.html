@@ -238,6 +238,26 @@ header .logo .logo-img{ display:block; height:34px; width:auto; object-fit:conta
   }
 }
 
+
+/* --- Mobile equal height: search & cart --- */
+@media (max-width: 640px){
+  :root{ --header-field-h: 52px; }
+  #searchInput{
+    height: var(--header-field-h) !important;
+    padding: 0 14px !important;
+    font-size: 16px !important;
+    border-radius: 14px !important;
+  }
+  #btnCart{
+    height: var(--header-field-h) !important;
+    min-width: var(--header-field-h) !important;
+    padding: 0 14px !important;
+    border-radius: 14px !important;
+    display:flex !important; align-items:center !important; justify-content:center !important;
+    line-height:1 !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1165,7 +1185,7 @@ left.append(row1, row2, image, youtube, act);
 
 <script>
 (function(){
-  const img = document.querySelector('img#logo, img.logo, .brand img');
+  const img = document.querySelector('#brandLogo, .logo-img, header .logo img, img#logo, img.logo, .brand img');
   if(!img) return;
   img.addEventListener('error', function onErr(){
     if(img.dataset.fallbackApplied) return;
