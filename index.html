@@ -148,40 +148,22 @@
     .qty .btn{padding:6px 10px; border-radius:10px}
     .cart-summary{display:flex; align-items:center; gap:12px; justify-content:flex-end; margin-top:10px; font-weight:800}
   
-/* --- Mobile & Interaction Fixes --- */
-html, body { overflow-x: hidden; overscroll-behavior-x: contain; touch-action: pan-y; }
-
-/* Logo image sizing */
-header .logo-img { height: 30px; width: auto; display: block; }
-
-/* Center product images reliably */
-.card img { margin: auto; display: block; }
-
-/* Equal height for search and cart on phones */
-@media (max-width: 640px){
-  :root{ --header-field-h: 52px; }
-  header .wrap{ display:flex; align-items:center; gap:10px; padding:8px 12px; }
-  header .brand, header .logo span{ font-size:16px; line-height:1.1; max-width:40vw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-  .search{ flex:1 1 auto; min-width:0 }
-  #searchInput{
-    height: var(--header-field-h) !important;
-    padding: 0 14px !important;
-    font-size: 16px !important;
-    border-radius: 14px !important;
-  }
-  #btnCart{
-    height: var(--header-field-h) !important;
-    min-width: var(--header-field-h) !important;
-    padding: 0 14px !important;
-    border-radius: 14px !important;
-    display:flex !important; align-items:center !important; justify-content:center !important;
-    line-height:1 !important;
-  }
-  /* Make admin tools grid friendlier on mobile */
-  #adminPanel .tools{ grid-template-columns: 1fr 1fr; gap:10px; }
-  /* Cards grid tighter on phones */
-  .grid{ grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); padding: 12px; gap: 12px; }
+/* --- Product image slight left shift --- */
+.card .img{ display:flex; align-items:center; justify-content:center; }
+.card .img img{
+  object-fit: contain !important;
+  object-position: 45% 50% !important; /* a tad to the left */
+  margin: auto !important;
+  display: block !important;
 }
+@media (max-width: 640px){
+  .card .img img{ object-position: 43% 50% !important; } /* a bit more on phones */
+}
+
+
+/* --- Ensure header logo renders reliably --- */
+header .logo-img{ height:30px; width:auto; display:block }
+@media (max-width:640px){ header .logo-img{ height:28px } }
 
 </style>
 </head>
@@ -194,7 +176,7 @@ header .logo-img { height: 30px; width: auto; display: block; }
       </div>
       <div class="space"></div>
       <div class="search">
-        <input id="searchInput" type="search" placeholder="Suche nach Artikeln…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="no-autofill" enterkeyhint="search" />
+        <input id="searchInput" type="search" placeholder="Suche nach Artikeln…" autocomplete="off" />
       </div>
       <button id="btnCart" class="btn primary" title="Warenkorb öffnen">Warenkorb <span id="cartBadge" class="badge hidden">0</span></button>
     </div>
@@ -1038,12 +1020,6 @@ left.append(row1, row2, image, youtube, act);
       });
     });
 
-    
-    // Edit modal wiring
-    ui.editCancel.addEventListener("click", ()=> closeModal(ui.editModal));
-    ui.editSave.addEventListener("click", saveEditing);
-    ui.editDelete.addEventListener("click", deleteEditing);
-
     // Login modal
     ui.loginCancel.addEventListener("click", ()=> closeModal(ui.loginModal));
     ui.loginOk.addEventListener("click", async()=>{
@@ -1078,33 +1054,6 @@ left.append(row1, row2, image, youtube, act);
     // Boot
     bootFirebase();
 
-
-// --- Vertical-only swipe (ignore inside modals/buttons) ---
-(function(){
-  let startX=0, startY=0;
-  function isInteractive(el){
-    return el.closest('.modal, button, a, input, textarea, select, .btn, [role="button"]');
-  }
-  window.addEventListener('touchstart', (e)=>{
-    if(e.touches && e.touches.length===1){
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-    }
-  }, {passive:true});
-  window.addEventListener('touchmove', (e)=>{
-    if(e.touches && e.touches.length===1){
-      if(isInteractive(e.target)) return;
-      const dx = Math.abs(e.touches[0].clientX - startX);
-      const dy = Math.abs(e.touches[0].clientY - startY);
-      if(dx > dy + 12){ e.preventDefault(); } // threshold to avoid killing taps
-    }
-  }, {passive:false});
-  window.addEventListener('wheel', (e)=>{
-    if(Math.abs(e.deltaX) > Math.abs(e.deltaY)){ e.preventDefault(); }
-  }, {passive:false});
-})();
-
-
     // Demo content when empty
     setTimeout(()=>{
       if(products.size===0){
@@ -1121,14 +1070,27 @@ left.append(row1, row2, image, youtube, act);
 
 <script>
 (function(){
-  const img = document.querySelector('#brandLogo, .logo-img, header .logo img');
-  if(!img) return;
-  function onErr(){
-    if(img.dataset.fallbackApplied) return;
-    img.dataset.fallbackApplied = "1";
-    img.src = 'https://raw.githubusercontent.com/blockpyrotechnics/Block_Pyrotechnics/refs/heads/main/assets/logo.png';
+  const logo = document.querySelector('#brandLogo, .logo-img, header .logo img');
+  if(!logo) return;
+  const sources = [
+    'assets/logo.png',
+    'https://raw.githubusercontent.com/blockpyrotechnics/Block_Pyrotechnics/main/assets/logo.png'
+  ];
+  let idx = 0;
+  function tryNext(){
+    if(idx >= sources.length) return;
+    logo.src = sources[idx++];
   }
-  img.addEventListener('error', onErr, {once:true});
+  // If current src isn't the first one, push it to front
+  try{
+    const current = logo.getAttribute('src');
+    if(current && sources[0] !== current){
+      sources.unshift(current);
+    }
+  }catch(e){}
+  logo.addEventListener('error', tryNext);
+  // kick off in case src was empty
+  if(!logo.getAttribute('src')) tryNext();
 })();
 </script>
 
