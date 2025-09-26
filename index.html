@@ -160,18 +160,13 @@
   .card .img img{ object-position: 43% 50% !important; } /* a bit more on phones */
 }
 
-
-/* --- Ensure header logo renders reliably --- */
-header .logo-img{ height:30px; width:auto; display:block }
-@media (max-width:640px){ header .logo-img{ height:28px } }
-
 </style>
 </head>
 <body>
   <header>
     <div class="wrap row">
       <div class="logo">
-        <img id="brandLogo" class="logo-img" src="assets/logo.png" alt="Block Pyrotechnics Logo"/>
+        <div class="logo-badge" aria-hidden="true"></div>
         <span>Block Pyrotechnics</span>
       </div>
       <div class="space"></div>
@@ -1067,32 +1062,5 @@ left.append(row1, row2, image, youtube, act);
       }
     }, 1200);
   </script>
-
-<script>
-(function(){
-  const logo = document.querySelector('#brandLogo, .logo-img, header .logo img');
-  if(!logo) return;
-  const sources = [
-    'assets/logo.png',
-    'https://raw.githubusercontent.com/blockpyrotechnics/Block_Pyrotechnics/main/assets/logo.png'
-  ];
-  let idx = 0;
-  function tryNext(){
-    if(idx >= sources.length) return;
-    logo.src = sources[idx++];
-  }
-  // If current src isn't the first one, push it to front
-  try{
-    const current = logo.getAttribute('src');
-    if(current && sources[0] !== current){
-      sources.unshift(current);
-    }
-  }catch(e){}
-  logo.addEventListener('error', tryNext);
-  // kick off in case src was empty
-  if(!logo.getAttribute('src')) tryNext();
-})();
-</script>
-
 </body>
 </html>
