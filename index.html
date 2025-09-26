@@ -173,6 +173,16 @@
       .card .img{aspect-ratio:4/3}
     }
 
+
+/* --- Mobile header tuning (bigger search, smaller brand) --- */
+@media (max-width: 640px){
+  header .brand{ font-size: 16px; line-height: 1.1; max-width: 45vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  header .brand img{ height: 28px; width: auto; }
+  header .wrap{ display:flex; align-items:center; gap:10px }
+  header .search{ flex: 1 1 auto; min-width: 55vw; }
+  header .search input{ height: 48px; padding: 12px 14px; font-size: 16px; }
+}
+
 </style>
 </head>
 <body>
@@ -1097,5 +1107,18 @@ left.append(row1, row2, image, youtube, act);
       }
     }, 1200);
   </script>
+
+<script>
+(function(){
+  const img = document.querySelector('img#logo, img.logo, .brand img');
+  if(!img) return;
+  img.addEventListener('error', function onErr(){
+    if(img.dataset.fallbackApplied) return;
+    img.dataset.fallbackApplied = "1";
+    img.src = 'https://raw.githubusercontent.com/blockpyrotechnics/Block_Pyrotechnics/refs/heads/main/assets/logo.png';
+  }, { once: true });
+})();
+</script>
+
 </body>
 </html>
