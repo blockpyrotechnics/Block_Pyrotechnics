@@ -183,13 +183,37 @@
   header .search input{ height: 48px; padding: 12px 14px; font-size: 16px; }
 }
 
+
+/* --- Brand logo img replaces gradient dot --- */
+header .logo { display:flex; align-items:center; gap:10px; }
+header .logo .logo-img{ display:block; height:34px; width:auto; object-fit:contain }
+/* Ensure cart button stays visible and doesn't shrink away */
+#btnCart{ flex-shrink:0 }
+/* On mobile: reduce brand text a bit, hide spacer, keep cart visible */
+@media (max-width:640px){
+  header .logo { gap:8px }
+  header .logo .logo-img{ height:28px }
+  header .logo span{ font-size:15px }
+  header .space{ display:none }
+  #btnCart{ padding:10px 12px }
+}
+/* Floating cart FAB for mobile */
+@media (max-width:640px){
+  #btnCartFloating{
+    position:fixed; right:16px; bottom:16px; z-index:9999;
+    border:none; border-radius:9999px; padding:14px 18px;
+    box-shadow:0 6px 18px rgba(0,0,0,.35);
+  }
+  #btnCartFloating .badge{ position:absolute; top:-6px; right:-6px }
+}
+
 </style>
 </head>
 <body>
   <header>
     <div class="wrap row">
       <div class="logo">
-        <div class="logo-badge" aria-hidden="true"></div>
+        <img id="brandLogo" class="logo-img" src="assets/logo.png" alt="Block Pyrotechnics Logo" />
         <span>Block Pyrotechnics</span>
       </div>
       <div class="space"></div>
