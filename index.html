@@ -207,6 +207,37 @@ header .logo .logo-img{ display:block; height:34px; width:auto; object-fit:conta
   #btnCartFloating .badge{ position:absolute; top:-6px; right:-6px }
 }
 
+
+/* --- Mobile: search field and cart button same height --- */
+@media (max-width: 640px){
+  :root{ --header-field-h: 52px; }
+  header .wrap{ display:flex; align-items:center; gap:10px }
+  header .brand{ font-size:16px; line-height:1.1; max-width:40vw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  header .search{ flex:1 1 auto; min-width:0 }
+  header .search input{
+    height: var(--header-field-h);
+    padding: 0 14px;
+    font-size: 16px;
+    border-radius: 14px;
+  }
+  /* Try multiple possible cart button selectors */
+  header .cartBtn,
+  header .cart-btn,
+  header #cartBtn,
+  header #openCart,
+  header #openCartBtn,
+  header .btn-cart,
+  header .actions .btn.cart,
+  header .actions .btn-cart{
+    height: var(--header-field-h);
+    min-width: var(--header-field-h); /* square if it's just an icon */
+    padding: 0 14px;                  /* if it has text */
+    border-radius: 14px;
+    display:flex; align-items:center; justify-content:center;
+    line-height:1;
+  }
+}
+
 </style>
 </head>
 <body>
