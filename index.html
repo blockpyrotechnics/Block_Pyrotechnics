@@ -151,6 +151,7 @@
 /* --- Mobile & Interaction Fixes --- */
 html, body { overflow-x: hidden; overscroll-behavior-x: contain; touch-action: pan-y; }
 header .logo-img { height: 30px; width: auto; display: block; }
+.card img { margin:auto; display:block; }
 @media (max-width: 640px){
   :root{ --header-field-h: 52px; }
   header .wrap{ display:flex; align-items:center; gap:10px; padding:8px 12px; }
@@ -161,46 +162,26 @@ header .logo-img { height: 30px; width: auto; display: block; }
   #adminPanel .tools{ grid-template-columns: 1fr 1fr; gap:10px; }
   .grid{ grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); padding: 12px; gap: 12px; }
 }
+/* Product images: fit and slight left shift */
+.card .img{ display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.card .img img{ width:100%; height:100%; object-fit:contain; transform: translateX(-6px); }
+@media (max-width: 640px){ .card .img img{ transform: translateX(-5px); } }
 
+/* Cart modal scrolling */
+.modal .box{ max-height: min(92vh, 880px); display:flex; flex-direction:column; overflow:hidden; }
+#cartList{ flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling: touch; }
+.cart-summary{ position:sticky; bottom:0; background:linear-gradient(180deg, rgba(16,20,27,.85), rgba(16,20,27,.95)); backdrop-filter:saturate(130%) blur(6px); padding-top:8px; }
+@media (max-width: 640px){ #cartModal .box{ max-height: 88vh; } }
 
-/* --- Product image fit + slight left shift (all devices) --- */
-.card .img{
-  display:flex; align-items:center; justify-content:center; overflow:hidden;
-}
-.card .img img{
-  width:100%; height:100%; object-fit:contain; transform: translateX(-6px);
-}
-@media (max-width: 640px){
-  .card .img img{ transform: translateX(-5px); }
-}
+/* Admin tabs & scrolling safety */
+#adminPanel{ overflow:hidden; }
+#adminPanel .head{ position:sticky; top:0; z-index:70; }
+#adminTabs{ display:flex; gap:8px; padding:8px 14px; position:sticky; top:58px; z-index:69; background:linear-gradient(180deg, rgba(12,16,22,.92), rgba(12,16,22,.86)); border-bottom:1px solid rgba(255,255,255,.06) }
+#adminTabs .btn{ flex:1 1 0; justify-content:center }
+#adminPanel .list{ flex:1 1 auto; overflow:auto; min-height:0; }
 
-
-/* --- Cart modal: make content scrollable on mobile & desktop --- */
-.modal .box{
-  max-height: min(92vh, 880px);
-  display:flex;
-  flex-direction:column;
-  overflow:hidden; /* keep rounded corners clean */
-}
-#cartList{
-  flex:1 1 auto;
-  min-height:0;
-  overflow-y:auto;
-  -webkit-overflow-scrolling: touch;
-}
-/* Keep summary/footer pinned and visible */
-.cart-summary{
-  position:sticky;
-  bottom:0;
-  background:linear-gradient(180deg, rgba(16,20,27,.85), rgba(16,20,27,.95));
-  backdrop-filter:saturate(130%) blur(6px);
-  padding-top:8px;
-}
-
-/* On small phones, use tighter vertical fit */
-@media (max-width: 640px){
-  #cartModal .box{ max-height: 88vh; }
-}
+/* Bring Bestellungen forward on small screens */
+@media (max-width: 640px){ #btnShowOrders{ order:-1; } }
 
 </style>
 </head>
@@ -247,6 +228,11 @@ header .logo-img { height: 30px; width: auto; display: block; }
   <aside id="adminPanel" role="dialog" aria-label="Admin Panel">
     <div class="head">
       <div class="title">Admin-Panel</div>
+    <div class="tabs" id="adminTabs">
+      <button id="btnTabProducts" class="btn ghost" type="button">Produkte</button>
+      <button id="btnTabOrders" class="btn" type="button">Bestellungen</button>
+    </div>
+
       <div class="space"></div>
       <button id="btnAdminClose" class="btn ghost" title="Panel schließen" type="button">Schließen</button>
       <button id="btnLogout" class="btn" title="Abmelden" type="button">Logout</button>
@@ -848,8 +834,7 @@ left.append(row1, row2, image, youtube, act);
       ui.list.appendChild(frag);
     }
 
-    function calcOrderSum(order){
-      const items = draft.itemsDetailed || [];
+    function calcOrderSum(order){ const items = (order && order.itemsDetailed) || [];
       let s=0; for(const it of items){ s += (Number(it.unitPrice)||0) * (Number(it.qty)||0); } return s;
     }
 
@@ -1058,10 +1043,14 @@ left.append(row1, row2, image, youtube, act);
     });
 
     
-    // Edit modal wiring
-    ui.editCancel.addEventListener("click", ()=> closeModal(ui.editModal));
-    ui.editSave.addEventListener("click", saveEditing);
-    ui.editDelete.addEventListener("click", deleteEditing);
+    // Tabs: mirror main view switches
+    const tabProd = document.getElementById("btnTabProducts");
+    const tabOrd = document.getElementById("btnTabOrders");
+    if(tabProd){ tabProd.addEventListener("click", ()=>{ adminView="products"; if(!productsDraft) productsDraft = new Map(products); renderAdminList(); tabProd.classList.add("ghost"); tabOrd.classList.remove("ghost"); }); }
+    if(tabOrd){ tabOrd.addEventListener("click", ()=>{ adminView="orders"; ordersDraft = new Map(); renderOrdersList(); tabOrd.classList.add("ghost"); tabProd.classList.remove("ghost"); if(cloudOK) startOrdersListener(); else loadOrdersLocal(); }); }
+
+    // Safety: if no modal is open, ensure page isn't stuck as modal-open
+    document.addEventListener("click", ()=>{ try{ if(!anyModalOpen()) document.body.classList.remove("modal-open"); }catch(e){} });
 
     // Login modal
     ui.loginCancel.addEventListener("click", ()=> closeModal(ui.loginModal));
