@@ -1136,7 +1136,15 @@
       }
     });
 
-    // Cart + Checkout modals
+    
+    // Edit modal buttons (fix)
+    ui.editCancel.addEventListener("click", ()=> closeModal(ui.editModal));
+    ui.editSave.addEventListener("click", saveEditing);
+    ui.editDelete.addEventListener("click", deleteEditing);
+    ui.editModal.addEventListener("keydown", (e)=>{
+      if((e.ctrlKey||e.metaKey) && e.key === "Enter") saveEditing();
+    });
+// Cart + Checkout modals
     ui.btnCart.addEventListener("click", openCart);
     ui.cartClose.addEventListener("click", ()=> closeModal(ui.cartModal));
     ui.cartClear.addEventListener("click", clearCart);
