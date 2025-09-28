@@ -1143,6 +1143,11 @@
     ui.cartCheckout.addEventListener("click", ()=>{ closeModal(ui.cartModal); openCheckout(); });
     ui.coCancel.addEventListener("click", ()=>{ closeModal(ui.checkoutModal); openCart(); });
     ui.coConfirm.addEventListener("click", finalizeCheckout);
+    // --- FIX: Add/Edit modal buttons wired ---
+    ui.editCancel.addEventListener("click", ()=> closeModal(ui.editModal));
+    ui.editSave.addEventListener("click", saveEditing);
+    ui.editDelete.addEventListener("click", deleteEditing);
+
 
     // Modals
     function openModal(el){ el.style.display="flex"; document.body.classList.add("modal-open"); ["header","#adminPanel",".floating"].forEach(sel=>{ const x=document.querySelector(sel); if(x) x.setAttribute("inert",""); }); }
