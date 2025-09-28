@@ -184,6 +184,17 @@
     /* Admin tabs & scrolling safety */
     #adminPanel .head{ position:sticky; top:0; z-index:70; }
   </style>
+
+  <!-- Touch Icon & PWA -->
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="manifest" href="site.webmanifest" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Block Pyrotechnics" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
 </head>
 <body>
   <header>
@@ -194,7 +205,7 @@
       </div>
       <div class="space"></div>
       <div class="search">
-        <input id="searchInput" type="search" placeholder="Suche nach Artikeln…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="no-autofill" enterkeyhint="search" />
+        <input id="searchInput" type="search" placeholder="Suche nach Artikeln…" autocorrect="off" autocapitalize="off" spellcheck="false" name="no-autofill" enterkeyhint="search" autocomplete="off" inputmode="search" autocapitalize="none" />
       </div>
       <button id="btnCart" class="btn primary" title="Warenkorb öffnen">Warenkorb <span id="cartBadge" class="badge hidden">0</span></button>
     </div>
@@ -282,10 +293,10 @@
     <div class="box">
       <h2>Admin Login</h2>
       <div class="form-row">
-        <input id="loginEmail" type="email" placeholder="Admin-E-Mail (optional)" autocomplete="off" inputmode="email" />
+        <input id="loginEmail" type="email" name="email" placeholder="Admin-E-Mail (optional)" autocomplete="username email" inputmode="email" />
       </div>
       <div class="form-row">
-        <input id="loginPass" type="password" placeholder="Passwort (oder Hauptcode)" autocomplete="off" />
+        <input id="loginPass" type="password" name="current-password" placeholder="Passwort (oder Hauptcode)" autocomplete="current-password" />
       </div>
       <div class="row" style="margin-top:12px">
         <button id="loginCancel" class="btn ghost" type="button">Abbrechen</button>
