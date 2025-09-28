@@ -646,7 +646,7 @@
         const catOk = (currentCategory === "alle") || (item.category === currentCategory);
         const termOk = !term || (item.name?.toLowerCase().includes(term));
         return catOk && termOk;
-      });
+      }).sort((a,b)=> (a.name||"").localeCompare((b.name||""), "de", {sensitivity:"base"}));
       list.forEach(item=> grid.appendChild(renderCard(item)));
       if(adminMode) (adminView==="orders" ? renderOrdersList() : renderAdminList());
     }
@@ -669,7 +669,7 @@
         else if(adminStatusTerm === "not_available") s = (item.availability||"available") === "not_available";
         else if(adminStatusTerm === "own") s = !!item.ownBrand;
         return t && c && s;
-      });
+      }).sort((a,b)=> (a.name||"").localeCompare((b.name||""), "de", {sensitivity:"base"}));
 
       filtered.forEach(item=>{
         const row = document.createElement("div");
@@ -1136,15 +1136,7 @@
       }
     });
 
-    
-    // Edit modal buttons (fix)
-    ui.editCancel.addEventListener("click", ()=> closeModal(ui.editModal));
-    ui.editSave.addEventListener("click", saveEditing);
-    ui.editDelete.addEventListener("click", deleteEditing);
-    ui.editModal.addEventListener("keydown", (e)=>{
-      if((e.ctrlKey||e.metaKey) && e.key === "Enter") saveEditing();
-    });
-// Cart + Checkout modals
+    // Cart + Checkout modals
     ui.btnCart.addEventListener("click", openCart);
     ui.cartClose.addEventListener("click", ()=> closeModal(ui.cartModal));
     ui.cartClear.addEventListener("click", clearCart);
